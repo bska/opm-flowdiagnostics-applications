@@ -53,9 +53,9 @@ struct CellState
 {
     CellState(const Opm::ECLGraph&                    G,
               const Opm::ECLCaseUtilities::ResultSet& rset,
-              const int                               cellID_);
+              const int                               pvtnum_);
 
-    int                 cellID;
+    int                 pvtnum;
     std::vector<double> time;
     std::vector<double> Po;
     std::vector<double> Rs;
@@ -64,8 +64,8 @@ struct CellState
 
 CellState::CellState(const Opm::ECLGraph&                    G,
                      const Opm::ECLCaseUtilities::ResultSet& rset,
-                     const int                               cellID_)
-    : cellID(cellID_)
+                     const int                               pvtnum_)
+    : pvtnum(pvtnum_)
 {
     const auto rsteps = rset.reportStepIDs();
 
@@ -87,7 +87,7 @@ CellState::CellState(const Opm::ECLGraph&                    G,
             const auto& press =
                 G.rawLinearisedCellData<double>(*rstrt, "PRESSURE");
 
-            this->Po.push_back(press[cellID]);
+            this->Po.push_back(press[this->pvtnum]);
         }
 
         {
@@ -244,7 +244,7 @@ try {
     const auto init  = Opm::ECLInitFileData(rset.initFile());
     const auto graph = Opm::ECLGraph::load(rset.gridFile(), init);
 
-    auto pvtCC = Opm::ECLPVT::ECLPvtCurveCollection(graph, init);
+    auto pvtCC = Opm::ECLPVT::ECLPvtCurveCollection(init);
     if (prm.has("unit")) {
         pvtCC.setOutputUnits(makeUnits(prm.get<std::string>("unit"), init));
     }

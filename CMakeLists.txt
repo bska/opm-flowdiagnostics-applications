@@ -192,19 +192,19 @@ target_link_libraries(computeTracers
     Boost::filesystem
 )
 
-add_executable(dynamicCellProperty)
-target_sources(dynamicCellProperty
-  PRIVATE
-    examples/dynamicCellProperty.cpp
-    examples/exampleSetup.hpp
-)
-target_link_libraries(dynamicCellProperty
-  PUBLIC
-    OpmFDApplications
-    FDExampleParameterHandling
-    OpmFDEngine::OpmFDEngine
-    Boost::filesystem
-)
+#add_executable(dynamicCellProperty)
+#target_sources(dynamicCellProperty
+#  PRIVATE
+#    examples/dynamicCellProperty.cpp
+#    examples/exampleSetup.hpp
+#)
+#target_link_libraries(dynamicCellProperty
+#  PUBLIC
+#    OpmFDApplications
+#    FDExampleParameterHandling
+#    OpmFDEngine::OpmFDEngine
+#    Boost::filesystem
+#)
 
 add_executable(extractFromRestart)
 target_sources(extractFromRestart
@@ -230,6 +230,11 @@ target_link_libraries(extractPropCurves
     FDExampleParameterHandling
     OpmFDEngine::OpmFDEngine
     Boost::filesystem
+)
+
+install(TARGETS extractPropCurves
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
 add_executable(computeFlowStorageCurve)

@@ -150,6 +150,7 @@ namespace {
     }
 
     void computePhaseFluxes(const Opm::ECLGraph&                    G,
+                            const Opm::ECLInitFileData&             init,
                             const Opm::ECLCaseUtilities::ResultSet& rset,
                             const Opm::ECLFluxCalc&                 fcalc,
                             const int                               step,
@@ -166,9 +167,9 @@ namespace {
             const auto pname = phaseName(phase);
             auto       pflux = std::vector<double>{};
 
-            timeIt(std::cout, [&fcalc, &rstrt, phase, &pname, &pflux]()
+            timeIt(std::cout, [&fcalc, &rstrt, &init, phase, &pname, &pflux]()
             {
-                pflux = fcalc.flux(*rstrt, phase);
+                pflux = fcalc.flux(*rstrt, init, phase);
 
                 std::cout << "    - " << std::right
                           << std::setw(5) << std::setfill(' ')
@@ -208,13 +209,13 @@ try {
     auto rstrt = std::unique_ptr<Opm::ECLRestartData>{};
 
     for (const auto& step : steps) {
-        timeIt(std::cout, [&rset, &graph, &rstrt, &fcalc, ndgt, step]()
+        timeIt(std::cout, [&rset, &graph, &init, &rstrt, &fcalc, ndgt, step]()
         {
             std::cout << "Phase Fluxes for Report Step "
                       << std::setw(ndgt) << std::setfill('0')
                       << step << std::endl;
 
-            computePhaseFluxes(graph, rset, fcalc, step, ndgt, rstrt);
+            computePhaseFluxes(graph, init, rset, fcalc, step, ndgt, rstrt);
 
             std::cout << "  - Step Time: ";
         });

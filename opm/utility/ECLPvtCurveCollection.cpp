@@ -236,8 +236,7 @@ namespace {
 }
 
 Opm::ECLPVT::ECLPvtCurveCollection::
-ECLPvtCurveCollection(const ECLGraph&        G,
-                      const ECLInitFileData& init)
+ECLPvtCurveCollection(const ECLInitFileData& init)
     : gas_          (CreateGasPVTInterpolant::fromECLOutput(init))
     , oil_          (CreateOilPVTInterpolant::fromECLOutput(init))
     , usys_native_  (ECLUnits::serialisedUnitConventions(init))
