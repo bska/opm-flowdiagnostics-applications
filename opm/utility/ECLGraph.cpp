@@ -34,6 +34,7 @@
 #include <exception>
 #include <initializer_list>
 #include <iterator>
+#include <limits>
 #include <map>
 #include <memory>
 #include <sstream>
@@ -1276,6 +1277,9 @@ public:
     /// \return   The number of LGR grids plus one (the main grid).
     int numGrids() const;
 
+    int localActiveCell(const std::string&       gridID,
+                        const std::array<int,3>& ijk) const;
+
     /// Retrieve active cell ID from (I,J,K) tuple in particular grid.
     ///
     /// \param[in] gridID Identity of specific grid to which to relate the
@@ -1728,6 +1732,12 @@ private:
                  const std::string&    vector,
                  GetFluxUnit&&         fluxUnit,
                  std::vector<double>&  flux) const;
+
+    int localActiveCell(const std::vector<ECL::CartesianGridData>::size_type gridIx,
+                        const std::array<int,3>&                             ijk) const;
+
+    std::vector<ECL::CartesianGridData>::size_type
+    gridIndex(const std::string& gridID) const;
 };
 
 // ======================================================================
@@ -1933,7 +1943,7 @@ Opm::ECLGraph::Impl::Impl(const ecl_grid_type*   grid,
 
         this->activeGrids_.push_back(this->grid_.back().gridName());
 
-        this->gridID_[this->activeGrids_.back()] = gridID;
+        this->gridID_.insert_or_assign(this->activeGrids_.back(), gridID);
     }
 
     this->defineNNCs(grid, init);
@@ -1986,28 +1996,29 @@ Opm::ECLGraph::Impl::numGrids() const
     return grid_.size();
 }
 
+int Opm::ECLGraph::Impl::
+localActiveCell(const std::string&       gridID,
+                const std::array<int,3>& ijk) const
+{
+    const auto gIdx = this->gridIndex(gridID);
+
+    return (gIdx >= this->grid_.size()) ? -1 : this->localActiveCell(gIdx, ijk);
+}
+
 int
 Opm::ECLGraph::Impl::
 activeCell(const std::string&       gridID,
            const std::array<int,3>& ijk) const
 {
-    const auto gID = this->gridID_.find(gridID);
-    if (gID == std::end(this->gridID_)) {
+    const auto gIdx = this->gridIndex(gridID);
+
+    if (gIdx >= this->grid_.size()) {
         return -1;
     }
 
-    const auto gIdx =
-        static_cast<decltype(this->grid_.size())>(gID->second);
-
-    assert ((gIdx <= this->grid_.size()) &&
-            "Logic Error in ECLGraph::Impl::Impl()");
-
-    const auto& grid = this->grid_[gIdx];
-
-    const auto active = grid.activeCell(ijk[0], ijk[1], ijk[2]);
-
-    if ((active < 0) || grid.isSubdivided(active)) {
-        return -1;
+    const auto active = this->localActiveCell(gIdx, ijk);
+    if (active < 0) {
+        return active;
     }
 
     const auto off = static_cast<int>(this->activeOffset_[gIdx]);
@@ -2408,6 +2419,36 @@ Opm::ECLGraph::Impl::flowVector(const ECLPhaseIndex phase) const
     }
 }
 
+int Opm::ECLGraph::Impl::localActiveCell(const std::vector<ECL::CartesianGridData>::size_type gridIx, const std::array<int, 3>& ijk) const
+{
+    const auto& grid = this->grid_[gridIx];
+
+    const auto active = grid.activeCell(ijk[0], ijk[1], ijk[2]);
+
+    if ((active < 0) || grid.isSubdivided(active)) {
+        return -1;
+    }
+
+    return active;
+}
+
+std::vector<ECL::CartesianGridData>::size_type
+Opm::ECLGraph::Impl::gridIndex(const std::string& gridID) const
+{
+    const auto gID = this->gridID_.find(gridID);
+    if (gID == std::end(this->gridID_)) {
+        return std::numeric_limits<std::vector<ECL::CartesianGridData>::size_type>::max();
+    }
+
+    const auto gIdx =
+        static_cast<std::vector<ECL::CartesianGridData>::size_type>(gID->second);
+
+    assert((gIdx <= this->grid_.size()) &&
+           "Logic Error in ECLGraph::Impl::Impl()");
+
+    return gIdx;
+}
+
 // ======================================================================
 
 Opm::ECLGraph::ECLGraph(ImplPtr pImpl)
@@ -2451,6 +2492,12 @@ Opm::ECLGraph::load(const ecl_grid_type*   grid,
 int Opm::ECLGraph::numGrids() const
 {
     return this->pImpl_->numGrids();
+}
+
+int Opm::ECLGraph::localActiveCell(const std::array<int,3>& ijk,
+                                   const std::string&       gridID) const
+{
+    return this->pImpl_->localActiveCell(gridID, ijk);
 }
 
 int

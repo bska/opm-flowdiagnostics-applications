@@ -266,6 +266,8 @@ namespace Opm {
         keywordData(const std::string& vector,
                     const std::string& gridID = "") const;
 
+        bool haveHysteresis(const std::string& gridID = "") const;
+
         // Grant class ECLGraph privileged access to getRawFilePtr().
         friend class ECLGraph;
 

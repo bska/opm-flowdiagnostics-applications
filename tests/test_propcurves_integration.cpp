@@ -75,6 +75,8 @@ namespace {
     }
 } // Anonymous namespace
 
+BOOST_AUTO_TEST_SUITE(Drainage)
+
 BOOST_AUTO_TEST_SUITE(Unscaled)
 
 BOOST_AUTO_TEST_CASE(Relperm_Gas)
@@ -91,11 +93,10 @@ BOOST_AUTO_TEST_CASE(Relperm_Gas)
 
     // Grid ID is empty string for the main grid.
     const auto gridID = std::string{};
-    const auto activeCell = this->G.activeCell(cell_16_31_10());
-    const auto satnum = this->init.keywordData<int>("SATNUM", gridID)[activeCell];
+    const auto activeCell = this->G.localActiveCell(cell_16_31_10(), gridID);
 
     const auto graphs = this->satFunc
-        .getSatFuncCurve(curves, this->init, gridID, activeCell, satnum, scaling);
+        .getSatFuncCurve(curves, this->init, gridID, activeCell, scaling);
 
     BOOST_REQUIRE_EQUAL(graphs.size(), std::size_t{ 1 });
 
@@ -149,11 +150,10 @@ BOOST_AUTO_TEST_CASE(Relperm_Oil_in_Oil_Gas)
 
     // Grid ID is empty string for the main grid.
     const auto gridID = std::string{};
-    const auto activeCell = this->G.activeCell(cell_16_31_10());
-    const auto satnum = this->init.keywordData<int>("SATNUM", gridID)[activeCell];
+    const auto activeCell = this->G.localActiveCell(cell_16_31_10(), gridID);
 
     const auto graphs = this->satFunc
-        .getSatFuncCurve(curves, this->init, gridID, activeCell, satnum, scaling);
+        .getSatFuncCurve(curves, this->init, gridID, activeCell, scaling);
 
     BOOST_REQUIRE_EQUAL(graphs.size(), std::size_t{ 1 });
 
@@ -207,11 +207,10 @@ BOOST_AUTO_TEST_CASE(Relperm_Oil_in_Oil_Water)
 
     // Grid ID is empty string for the main grid.
     const auto gridID = std::string{};
-    const auto activeCell = this->G.activeCell(cell_16_31_10());
-    const auto satnum = this->init.keywordData<int>("SATNUM", gridID)[activeCell];
+    const auto activeCell = this->G.localActiveCell(cell_16_31_10(), gridID);
 
     const auto graphs = this->satFunc
-        .getSatFuncCurve(curves, this->init, gridID, activeCell, satnum, scaling);
+        .getSatFuncCurve(curves, this->init, gridID, activeCell, scaling);
 
     BOOST_REQUIRE_EQUAL(graphs.size(), std::size_t{ 1 });
 
@@ -266,11 +265,10 @@ BOOST_AUTO_TEST_CASE(Relperm_Water)
 
     // Grid ID is empty string for the main grid.
     const auto gridID = std::string{};
-    const auto activeCell = this->G.activeCell(cell_16_31_10());
-    const auto satnum = this->init.keywordData<int>("SATNUM", gridID)[activeCell];
+    const auto activeCell = this->G.localActiveCell(cell_16_31_10(), gridID);
 
     const auto graphs = this->satFunc
-        .getSatFuncCurve(curves, this->init, gridID, activeCell, satnum, scaling);
+        .getSatFuncCurve(curves, this->init, gridID, activeCell, scaling);
 
     BOOST_REQUIRE_EQUAL(graphs.size(), std::size_t{ 1 });
 
@@ -324,11 +322,10 @@ BOOST_AUTO_TEST_CASE(CapPress_Gas_Oil)
 
     // Grid ID is empty string for the main grid.
     const auto gridID = std::string{};
-    const auto activeCell = this->G.activeCell(cell_16_31_10());
-    const auto satnum = this->init.keywordData<int>("SATNUM", gridID)[activeCell];
+    const auto activeCell = this->G.localActiveCell(cell_16_31_10(), gridID);
 
     const auto graphs = this->satFunc
-        .getSatFuncCurve(curves, this->init, gridID, activeCell, satnum, scaling);
+        .getSatFuncCurve(curves, this->init, gridID, activeCell, scaling);
 
     BOOST_REQUIRE_EQUAL(graphs.size(), std::size_t{ 1 });
 
@@ -382,11 +379,10 @@ BOOST_AUTO_TEST_CASE(CapPress_Oil_Water)
 
     // Grid ID is empty string for the main grid.
     const auto gridID = std::string{};
-    const auto activeCell = this->G.activeCell(cell_16_31_10());
-    const auto satnum = this->init.keywordData<int>("SATNUM", gridID)[activeCell];
+    const auto activeCell = this->G.localActiveCell(cell_16_31_10(), gridID);
 
     const auto graphs = this->satFunc
-        .getSatFuncCurve(curves, this->init, gridID, activeCell, satnum, scaling);
+        .getSatFuncCurve(curves, this->init, gridID, activeCell, scaling);
 
     BOOST_REQUIRE_EQUAL(graphs.size(), std::size_t{ 1 });
 
@@ -447,11 +443,10 @@ BOOST_AUTO_TEST_CASE(Relperm_Gas)
 
     // Grid ID is empty string for the main grid.
     const auto gridID = std::string{};
-    const auto activeCell = this->G.activeCell(cell_16_31_10());
-    const auto satnum = this->init.keywordData<int>("SATNUM", gridID)[activeCell];
+    const auto activeCell = this->G.localActiveCell(cell_16_31_10(), gridID);
 
     const auto graphs = this->satFunc
-        .getSatFuncCurve(curves, this->init, gridID, activeCell, satnum, scaling);
+        .getSatFuncCurve(curves, this->init, gridID, activeCell, scaling);
 
     BOOST_REQUIRE_EQUAL(graphs.size(), std::size_t{ 1 });
 
@@ -524,11 +519,10 @@ BOOST_AUTO_TEST_CASE(Relperm_Oil_in_Oil_Gas)
 
     // Grid ID is empty string for the main grid.
     const auto gridID = std::string{};
-    const auto activeCell = this->G.activeCell(cell_16_31_10());
-    const auto satnum = this->init.keywordData<int>("SATNUM", gridID)[activeCell];
+    const auto activeCell = this->G.localActiveCell(cell_16_31_10(), gridID);
 
     const auto graphs = this->satFunc
-        .getSatFuncCurve(curves, this->init, gridID, activeCell, satnum, scaling);
+        .getSatFuncCurve(curves, this->init, gridID, activeCell, scaling);
 
     BOOST_REQUIRE_EQUAL(graphs.size(), std::size_t{ 1 });
 
@@ -601,11 +595,10 @@ BOOST_AUTO_TEST_CASE(Relperm_Oil_in_Oil_Water)
 
     // Grid ID is empty string for the main grid.
     const auto gridID = std::string{};
-    const auto activeCell = this->G.activeCell(cell_16_31_10());
-    const auto satnum = this->init.keywordData<int>("SATNUM", gridID)[activeCell];
+    const auto activeCell = this->G.localActiveCell(cell_16_31_10(), gridID);
 
     const auto graphs = this->satFunc
-        .getSatFuncCurve(curves, this->init, gridID, activeCell, satnum, scaling);
+        .getSatFuncCurve(curves, this->init, gridID, activeCell, scaling);
 
     BOOST_REQUIRE_EQUAL(graphs.size(), std::size_t{ 1 });
 
@@ -679,11 +672,10 @@ BOOST_AUTO_TEST_CASE(Relperm_Water)
 
     // Grid ID is empty string for the main grid.
     const auto gridID = std::string{};
-    const auto activeCell = this->G.activeCell(cell_16_31_10());
-    const auto satnum = this->init.keywordData<int>("SATNUM", gridID)[activeCell];
+    const auto activeCell = this->G.localActiveCell(cell_16_31_10(), gridID);
 
     const auto graphs = this->satFunc
-        .getSatFuncCurve(curves, this->init, gridID, activeCell, satnum, scaling);
+        .getSatFuncCurve(curves, this->init, gridID, activeCell, scaling);
 
     BOOST_REQUIRE_EQUAL(graphs.size(), std::size_t{ 1 });
 
@@ -755,11 +747,10 @@ BOOST_AUTO_TEST_CASE(CapPress_Gas_Oil)
 
     // Grid ID is empty string for the main grid.
     const auto gridID = std::string{};
-    const auto activeCell = this->G.activeCell(cell_16_31_10());
-    const auto satnum = this->init.keywordData<int>("SATNUM", gridID)[activeCell];
+    const auto activeCell = this->G.localActiveCell(cell_16_31_10(), gridID);
 
     const auto graphs = this->satFunc
-        .getSatFuncCurve(curves, this->init, gridID, activeCell, satnum, scaling);
+        .getSatFuncCurve(curves, this->init, gridID, activeCell, scaling);
 
     BOOST_REQUIRE_EQUAL(graphs.size(), std::size_t{ 1 });
 
@@ -832,11 +823,10 @@ BOOST_AUTO_TEST_CASE(CapPress_Oil_Water)
 
     // Grid ID is empty string for the main grid.
     const auto gridID = std::string{};
-    const auto activeCell = this->G.activeCell(cell_16_31_10());
-    const auto satnum = this->init.keywordData<int>("SATNUM", gridID)[activeCell];
+    const auto activeCell = this->G.localActiveCell(cell_16_31_10(), gridID);
 
     const auto graphs = this->satFunc
-        .getSatFuncCurve(curves, this->init, gridID, activeCell, satnum, scaling);
+        .getSatFuncCurve(curves, this->init, gridID, activeCell, scaling);
 
     BOOST_REQUIRE_EQUAL(graphs.size(), std::size_t{ 1 });
 
@@ -897,5 +887,836 @@ BOOST_AUTO_TEST_CASE(CapPress_Oil_Water)
 }
 
 BOOST_AUTO_TEST_SUITE_END() // Scaled
+
+BOOST_AUTO_TEST_SUITE_END() // Drainage
+
+// ==========================================================================
+
+BOOST_AUTO_TEST_SUITE(Imbibition)
+
+BOOST_AUTO_TEST_SUITE(Unscaled)
+
+BOOST_AUTO_TEST_CASE(Relperm_Gas)
+{
+    auto curves = std::vector<Opm::ECLSaturationFunc::RawCurve>{};
+
+    auto& curve = curves.emplace_back();
+    curve.curve = Opm::ECLSaturationFunc::RawCurve::Function::RelPerm;
+    curve.subsys = Opm::ECLSaturationFunc::RawCurve::SubSystem::OilGas;
+    curve.thisPh = Opm::ECLPhaseIndex::Vapour;
+    curve.curveSet = Opm::ECLSaturationFunc::RawCurve::CurveSet::Imbibition;
+
+    auto scaling = Opm::ECLSaturationFunc::SatFuncScaling{};
+    scaling.enable = static_cast<unsigned char>(0);
+
+    // Grid ID is empty string for the main grid.
+    const auto gridID = std::string{};
+    const auto activeCell = this->G.localActiveCell(cell_16_31_10(), gridID);
+
+    const auto graphs = this->satFunc
+        .getSatFuncCurve(curves, this->init, gridID, activeCell, scaling);
+
+    BOOST_REQUIRE_EQUAL(graphs.size(), std::size_t{ 1 });
+
+    // Gas saturations
+    {
+        const auto expect_sg = std::vector<double> {
+            0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45,
+            0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95,
+            0.9999, 1.0,
+        };
+
+        const auto& sg = graphs.front().first;
+        BOOST_REQUIRE_EQUAL(sg.size(), expect_sg.size());
+
+        for (auto i = 0 * sg.size(); i < sg.size(); ++i) {
+            BOOST_TEST_MESSAGE("Compare Sg[" << i << "] with Expected Value");
+            BOOST_CHECK_CLOSE(sg[i], expect_sg[i], 1.0e-6);
+        }
+    }
+
+    // Relative permeability values
+    {
+        const auto expect_kr = std::vector<double> {
+            0.0, 0.001655, 0.006913, 0.016213, 0.02999, 0.048655, 0.072573,
+            0.102046, 0.137287, 0.178402, 0.225368, 0.27803, 0.336093,
+            0.399135, 0.466631, 0.538, 0.612665, 0.690169, 0.770395,
+            0.854218, 0.9499, 0.95,
+        };
+
+        const auto& kr = graphs.front().second;
+        BOOST_REQUIRE_EQUAL(kr.size(), expect_kr.size());
+
+        for (auto i = 0 * kr.size(); i < kr.size(); ++i) {
+            BOOST_TEST_MESSAGE("Compare Krg[" << i << "] with Expected Value");
+            BOOST_CHECK_CLOSE(kr[i], expect_kr[i], 1.0e-6);
+        }
+    }
+}
+
+BOOST_AUTO_TEST_CASE(Relperm_Oil_in_Oil_Gas)
+{
+    auto curves = std::vector<Opm::ECLSaturationFunc::RawCurve>{};
+
+    auto& curve = curves.emplace_back();
+    curve.curve = Opm::ECLSaturationFunc::RawCurve::Function::RelPerm;
+    curve.subsys = Opm::ECLSaturationFunc::RawCurve::SubSystem::OilGas;
+    curve.thisPh = Opm::ECLPhaseIndex::Liquid;
+    curve.curveSet = Opm::ECLSaturationFunc::RawCurve::CurveSet::Imbibition;
+
+    auto scaling = Opm::ECLSaturationFunc::SatFuncScaling{};
+    scaling.enable = static_cast<unsigned char>(0);
+
+    // Grid ID is empty string for the main grid.
+    const auto gridID = std::string{};
+    const auto activeCell = this->G.localActiveCell(cell_16_31_10(), gridID);
+
+    const auto graphs = this->satFunc
+        .getSatFuncCurve(curves, this->init, gridID, activeCell, scaling);
+
+    BOOST_REQUIRE_EQUAL(graphs.size(), std::size_t{ 1 });
+
+    // Gas saturations
+    {
+        const auto expect_sg = std::vector<double> {
+            0.0, 1.0E-4, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4,
+            0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9,
+            0.95, 0.9999, 1.0,
+        };
+
+        const auto& sg = graphs.front().first;
+        BOOST_REQUIRE_EQUAL(sg.size(), expect_sg.size());
+
+        for (auto i = 0 * sg.size(); i < sg.size(); ++i) {
+            BOOST_TEST_MESSAGE("Compare Sg[" << i << "] with Expected Value");
+            BOOST_CHECK_CLOSE(sg[i], expect_sg[i], 1.0e-6);
+        }
+    }
+
+    // Relative permeability values
+    {
+        const auto expect_kr = std::vector<double> {
+            1.0, 0.999613776, 0.806888, 0.633562, 0.485506, 0.364043,
+            0.267589, 0.192992, 0.136554, 0.094671, 0.064151,
+            0.042324, 0.027035, 0.016586, 0.009662, 0.005254,
+            0.002597, 0.001117, 0.000384, 8.8E-05, 7.0E-06, 0.0, 0.0,
+        };
+
+        const auto& kr = graphs.front().second;
+        BOOST_REQUIRE_EQUAL(kr.size(), expect_kr.size());
+
+        for (auto i = 0 * kr.size(); i < kr.size(); ++i) {
+            BOOST_TEST_MESSAGE("Compare Krog[" << i << "] with Expected Value");
+            BOOST_CHECK_CLOSE(kr[i], expect_kr[i], 1.0e-6);
+        }
+    }
+}
+
+BOOST_AUTO_TEST_CASE(Relperm_Oil_in_Oil_Water)
+{
+    auto curves = std::vector<Opm::ECLSaturationFunc::RawCurve>{};
+
+    auto& curve = curves.emplace_back();
+    curve.curve = Opm::ECLSaturationFunc::RawCurve::Function::RelPerm;
+    curve.subsys = Opm::ECLSaturationFunc::RawCurve::SubSystem::OilWater;
+    curve.thisPh = Opm::ECLPhaseIndex::Liquid;
+    curve.curveSet = Opm::ECLSaturationFunc::RawCurve::CurveSet::Imbibition;
+
+    auto scaling = Opm::ECLSaturationFunc::SatFuncScaling{};
+    scaling.enable = static_cast<unsigned char>(0);
+
+    // Grid ID is empty string for the main grid.
+    const auto gridID = std::string{};
+    const auto activeCell = this->G.localActiveCell(cell_16_31_10(), gridID);
+
+    const auto graphs = this->satFunc
+        .getSatFuncCurve(curves, this->init, gridID, activeCell, scaling);
+
+    BOOST_REQUIRE_EQUAL(graphs.size(), std::size_t{ 1 });
+
+    // Water saturations
+    {
+        const auto expect_sw = std::vector<double> {
+            0.0, 1.0E-4, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4,
+            0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9,
+            0.95, 0.9999, 1.0,
+        };
+
+        const auto& sw = graphs.front().first;
+        BOOST_REQUIRE_EQUAL(sw.size(), expect_sw.size());
+
+        for (auto i = 0 * sw.size(); i < sw.size(); ++i) {
+            BOOST_TEST_MESSAGE("Compare Sw[" << i << "] with Expected Value");
+            BOOST_CHECK_CLOSE(sw[i], expect_sw[i], 1.0e-6);
+        }
+    }
+
+    // Relative permeability values
+    {
+        const auto expect_kr = std::vector<double> {
+            1.0, 0.999, 0.84782, 0.69746, 0.55717,
+            0.43286, 0.32757, 0.24177, 0.17415, 0.12237,
+            0.08374, 0.05565, 0.03572, 0.02199, 0.01284,
+            0.00699, 0.00346, 0.00149, 0.00051, 0.00012,
+            1.E-05, 0.0, 0.0,
+        };
+
+        const auto& kr = graphs.front().second;
+        BOOST_REQUIRE_EQUAL(kr.size(), expect_kr.size());
+
+        for (auto i = 0 * kr.size(); i < kr.size(); ++i) {
+            BOOST_TEST_MESSAGE("Compare Krow[" << i << "] with Expected Value");
+            BOOST_CHECK_CLOSE(kr[i], expect_kr[i], 1.0e-6);
+        }
+    }
+}
+
+BOOST_AUTO_TEST_CASE(Relperm_Water)
+{
+    auto curves = std::vector<Opm::ECLSaturationFunc::RawCurve>{};
+
+    auto& curve = curves.emplace_back();
+    curve.curve = Opm::ECLSaturationFunc::RawCurve::Function::RelPerm;
+    curve.subsys = Opm::ECLSaturationFunc::RawCurve::SubSystem::OilWater;
+    curve.thisPh = Opm::ECLPhaseIndex::Aqua;
+    curve.curveSet = Opm::ECLSaturationFunc::RawCurve::CurveSet::Imbibition;
+
+    auto scaling = Opm::ECLSaturationFunc::SatFuncScaling{};
+    scaling.enable = static_cast<unsigned char>(0);
+
+    // Grid ID is empty string for the main grid.
+    const auto gridID = std::string{};
+    const auto activeCell = this->G.localActiveCell(cell_16_31_10(), gridID);
+
+    const auto graphs = this->satFunc
+        .getSatFuncCurve(curves, this->init, gridID, activeCell, scaling);
+
+    BOOST_REQUIRE_EQUAL(graphs.size(), std::size_t{ 1 });
+
+    // Water saturations
+    {
+        const auto expect_sw = std::vector<double> {
+            0.0, 0.0001, 0.05, 0.1, 0.15, 0.2, 0.25,
+            0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65,
+            0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1.0,
+        };
+
+        const auto& sw = graphs.front().first;
+        BOOST_REQUIRE_EQUAL(sw.size(), expect_sw.size());
+
+        for (auto i = 0 * sw.size(); i < sw.size(); ++i) {
+            BOOST_TEST_MESSAGE("Compare Sw[" << i << "] with Expected Value");
+            BOOST_CHECK_CLOSE(sw[i], expect_sw[i], 1.0e-6);
+        }
+    }
+
+    // Relative permeability values
+    {
+        const auto expect_kr = std::vector<double> {
+            0.0, 0.0, 0.00086, 0.00263, 0.00524, 0.00877, 0.01338,
+            0.01927, 0.02672, 0.03608, 0.04781, 0.0625, 0.0809, 0.10394,
+            0.13277, 0.16869, 0.21302, 0.26667, 0.32918, 0.39706,
+            0.46103, 0.5,
+        };
+
+        const auto& kr = graphs.front().second;
+        BOOST_REQUIRE_EQUAL(kr.size(), expect_kr.size());
+
+        for (auto i = 0 * kr.size(); i < kr.size(); ++i) {
+            BOOST_TEST_MESSAGE("Compare Krw[" << i << "] with Expected Value");
+            BOOST_CHECK_CLOSE(kr[i], expect_kr[i], 1.0e-6);
+        }
+    }
+}
+
+BOOST_AUTO_TEST_CASE(CapPress_Gas_Oil)
+{
+    auto curves = std::vector<Opm::ECLSaturationFunc::RawCurve>{};
+
+    auto& curve = curves.emplace_back();
+    curve.curve = Opm::ECLSaturationFunc::RawCurve::Function::CapPress;
+    curve.subsys = Opm::ECLSaturationFunc::RawCurve::SubSystem::OilGas;
+    curve.thisPh = Opm::ECLPhaseIndex::Vapour;
+    curve.curveSet = Opm::ECLSaturationFunc::RawCurve::CurveSet::Imbibition;
+
+    auto scaling = Opm::ECLSaturationFunc::SatFuncScaling{};
+    scaling.enable = static_cast<unsigned char>(0);
+
+    // Grid ID is empty string for the main grid.
+    const auto gridID = std::string{};
+    const auto activeCell = this->G.localActiveCell(cell_16_31_10(), gridID);
+
+    const auto graphs = this->satFunc
+        .getSatFuncCurve(curves, this->init, gridID, activeCell, scaling);
+
+    BOOST_REQUIRE_EQUAL(graphs.size(), std::size_t{ 1 });
+
+    // Gas saturations
+    {
+        const auto expect_sg = std::vector<double> {
+            0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45,
+            0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95,
+            0.9999, 1.0,
+        };
+
+        const auto& sg = graphs.front().first;
+        BOOST_REQUIRE_EQUAL(sg.size(), expect_sg.size());
+
+        for (auto i = 0 * sg.size(); i < sg.size(); ++i) {
+            BOOST_TEST_MESSAGE("Compare Sg[" << i << "] with Expected Value");
+            BOOST_CHECK_CLOSE(sg[i], expect_sg[i], 1.0e-6);
+        }
+    }
+
+    // Gas/oil capillary pressure (Pg - Po) values
+    {
+        const auto expect_pc = std::vector<double> {
+            0.0, 0.0, 0.0, 0.0, 0.0,
+            0.0, 0.0, 0.0, 0.0, 0.0,
+            0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+            0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+        };
+
+        const auto& pc = graphs.front().second;
+        BOOST_REQUIRE_EQUAL(pc.size(), expect_pc.size());
+
+        for (auto i = 0 * pc.size(); i < pc.size(); ++i) {
+            BOOST_TEST_MESSAGE("Compare Pcgo[" << i << "] with Expected Value");
+            BOOST_CHECK_CLOSE(pc[i], expect_pc[i], 1.0e-6);
+        }
+    }
+}
+
+BOOST_AUTO_TEST_CASE(CapPress_Oil_Water)
+{
+    auto curves = std::vector<Opm::ECLSaturationFunc::RawCurve>{};
+
+    auto& curve = curves.emplace_back();
+    curve.curve = Opm::ECLSaturationFunc::RawCurve::Function::CapPress;
+    curve.subsys = Opm::ECLSaturationFunc::RawCurve::SubSystem::OilWater;
+    curve.thisPh = Opm::ECLPhaseIndex::Aqua;
+    curve.curveSet = Opm::ECLSaturationFunc::RawCurve::CurveSet::Imbibition;
+
+    auto scaling = Opm::ECLSaturationFunc::SatFuncScaling{};
+    scaling.enable = static_cast<unsigned char>(0);
+
+    // Grid ID is empty string for the main grid.
+    const auto gridID = std::string{};
+    const auto activeCell = this->G.localActiveCell(cell_16_31_10(), gridID);
+
+    const auto graphs = this->satFunc
+        .getSatFuncCurve(curves, this->init, gridID, activeCell, scaling);
+
+    BOOST_REQUIRE_EQUAL(graphs.size(), std::size_t{ 1 });
+
+    // Water saturations
+    {
+        const auto expect_sw = std::vector<double> {
+            0.0, 0.0001, 0.05, 0.1, 0.15, 0.2, 0.25,
+            0.3, 0.35, 0.4, 0.45, 0.5, 0.55, 0.6, 0.65,
+            0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 1.0,
+        };
+
+        const auto& sw = graphs.front().first;
+        BOOST_REQUIRE_EQUAL(sw.size(), expect_sw.size());
+
+        for (auto i = 0 * sw.size(); i < sw.size(); ++i) {
+            BOOST_TEST_MESSAGE("Compare Sw[" << i << "] with Expected Value");
+            BOOST_CHECK_CLOSE(sw[i], expect_sw[i], 1.0e-6);
+        }
+    }
+
+    // Oil/water capillary pressure (Po - Pw) values
+    {
+        const auto expect_pc = std::vector<double> {
+            375633.0, 375632.0, 186981.0, 123731.0, 91821.0,
+            72451.0, 59341.0, 49811.0, 42511.0, 36691.0,
+            31911.0, 27881.0, 24401.0, 21351.0, 18631.0,
+            16161.0, 13901.0, 11801.0, 9831.0, 7961.0,
+            6161.0, 4408.0,
+        };
+
+        const auto& pc = graphs.front().second;
+        BOOST_REQUIRE_EQUAL(pc.size(), expect_pc.size());
+
+        for (auto i = 0 * pc.size(); i < pc.size(); ++i) {
+            BOOST_TEST_MESSAGE("Compare Pcow[" << i << "] with Expected Value");
+            BOOST_CHECK_CLOSE(pc[i], expect_pc[i], 1.0e-6);
+        }
+    }
+}
+
+BOOST_AUTO_TEST_SUITE_END() // Unscaled
+
+// --------------------------------------------------------------------------
+
+BOOST_AUTO_TEST_SUITE(Scaled)
+
+BOOST_AUTO_TEST_CASE(Relperm_Gas)
+{
+    auto curves = std::vector<Opm::ECLSaturationFunc::RawCurve>{};
+
+    auto& curve = curves.emplace_back();
+    curve.curve = Opm::ECLSaturationFunc::RawCurve::Function::RelPerm;
+    curve.subsys = Opm::ECLSaturationFunc::RawCurve::SubSystem::OilGas;
+    curve.thisPh = Opm::ECLPhaseIndex::Vapour;
+    curve.curveSet = Opm::ECLSaturationFunc::RawCurve::CurveSet::Imbibition;
+
+    // Default scaling mode is horizontal + vertical.
+    const auto scaling = Opm::ECLSaturationFunc::SatFuncScaling{};
+
+    // Grid ID is empty string for the main grid.
+    const auto gridID = std::string{};
+    const auto activeCell = this->G.localActiveCell(cell_16_31_10(), gridID);
+
+    const auto graphs = this->satFunc
+        .getSatFuncCurve(curves, this->init, gridID, activeCell, scaling);
+
+    BOOST_REQUIRE_EQUAL(graphs.size(), std::size_t{ 1 });
+
+    // Gas saturations
+    {
+        const auto expect_sg = std::vector<double> {
+            0.21999999880790710,
+            0.25300329914539144,
+            0.28600659948287577,
+            0.31900989982036010,
+            0.35201320015784443,
+            0.38501650049532876,
+            0.41801980083281309,
+            0.45102310117029737,
+            0.48402640150778176,
+            0.51702970184526609,
+            0.55003300218275042,
+            0.58303630252023475,
+            0.61603960285771908,
+            0.64904290319520341,
+            0.68204620353268763,
+            0.71504950387017208,
+            0.74805280420765641,
+            0.78105610454514063,
+            0.81405940488262507,
+            0.84706270522010929,
+            0.87999999895691872,
+            0.94999998807907104,
+        };
+
+        const auto& sg = graphs.front().first;
+        BOOST_REQUIRE_EQUAL(sg.size(), expect_sg.size());
+
+        for (auto i = 0 * sg.size(); i < sg.size(); ++i) {
+            BOOST_TEST_MESSAGE("Compare Sg[" << i << "] with Expected Value");
+            BOOST_CHECK_CLOSE(sg[i], expect_sg[i], 1.0e-6);
+        }
+    }
+
+    // Relative permeability values
+    {
+        const auto expect_kr = std::vector<double> {
+            0.0, 0.001655, 0.006913, 0.016213, 0.02999, 0.048655, 0.072573,
+            0.102046, 0.137287, 0.178402, 0.225368, 0.27803, 0.336093,
+            0.399135, 0.466631, 0.538, 0.612665, 0.690169, 0.770395,
+            0.854218, 0.9499, 0.95,
+        };
+
+        const auto& kr = graphs.front().second;
+        BOOST_REQUIRE_EQUAL(kr.size(), expect_kr.size());
+
+        for (auto i = 0 * kr.size(); i < kr.size(); ++i) {
+            BOOST_TEST_MESSAGE("Compare Krg[" << i << "] with Expected Value");
+            BOOST_CHECK_CLOSE(kr[i], expect_kr[i], 1.0e-6);
+        }
+    }
+}
+
+BOOST_AUTO_TEST_CASE(Relperm_Oil_in_Oil_Gas)
+{
+    auto curves = std::vector<Opm::ECLSaturationFunc::RawCurve>{};
+
+    auto& curve = curves.emplace_back();
+    curve.curve = Opm::ECLSaturationFunc::RawCurve::Function::RelPerm;
+    curve.subsys = Opm::ECLSaturationFunc::RawCurve::SubSystem::OilGas;
+    curve.thisPh = Opm::ECLPhaseIndex::Liquid;
+    curve.curveSet = Opm::ECLSaturationFunc::RawCurve::CurveSet::Imbibition;
+
+    // Default scaling mode is horizontal + vertical.
+    const auto scaling = Opm::ECLSaturationFunc::SatFuncScaling{};
+
+    // Grid ID is empty string for the main grid.
+    const auto gridID = std::string{};
+    const auto activeCell = this->G.localActiveCell(cell_16_31_10(), gridID);
+
+    const auto graphs = this->satFunc
+        .getSatFuncCurve(curves, this->init, gridID, activeCell, scaling);
+
+    BOOST_REQUIRE_EQUAL(graphs.size(), std::size_t{ 1 });
+
+    // Gas saturations
+    {
+        const auto expect_sg = std::vector<double> {
+            0.21999999880790710,
+            0.22006600540858212,
+            0.25300329914539144,
+            0.28600659948287577,
+            0.31900989982036010,
+            0.35201320015784443,
+            0.38501650049532876,
+            0.41801980083281309,
+            0.45102310117029737,
+            0.48402640150778176,
+            0.51702970184526609,
+            0.55003300218275042,
+            0.58303630252023475,
+            0.61603960285771908,
+            0.64904290319520341,
+            0.68204620353268774,
+            0.71504950387017208,
+            0.74805280420765641,
+            0.78105610454514074,
+            0.81405940488262507,
+            0.84706270522010929,
+            0.87999999895691872,
+        };
+
+        const auto& sg = graphs.front().first;
+        BOOST_REQUIRE_EQUAL(sg.size(), expect_sg.size());
+
+        for (auto i = 0 * sg.size(); i < sg.size(); ++i) {
+            BOOST_TEST_MESSAGE("Compare Sg[" << i << "] with Expected Value");
+            BOOST_CHECK_CLOSE(sg[i], expect_sg[i], 1.0e-6);
+        }
+    }
+
+    // Relative permeability values
+    {
+        const auto expect_kr = std::vector<double> {
+            1.0, 0.999613776, 0.806888, 0.633562, 0.485506, 0.364043,
+            0.267589, 0.192992, 0.136554, 0.094671, 0.064151,
+            0.042324, 0.027035, 0.016586, 0.009662, 0.005254,
+            0.002597, 0.001117, 0.000384, 8.8E-05, 7.0E-06, 0.0,
+        };
+
+        const auto& kr = graphs.front().second;
+        BOOST_REQUIRE_EQUAL(kr.size(), expect_kr.size());
+
+        for (auto i = 0 * kr.size(); i < kr.size(); ++i) {
+            BOOST_TEST_MESSAGE("Compare Krog[" << i << "] with Expected Value");
+            BOOST_CHECK_CLOSE(kr[i], expect_kr[i], 1.0e-6);
+        }
+    }
+}
+
+BOOST_AUTO_TEST_CASE(Relperm_Oil_in_Oil_Water)
+{
+    auto curves = std::vector<Opm::ECLSaturationFunc::RawCurve>{};
+
+    auto& curve = curves.emplace_back();
+    curve.curve = Opm::ECLSaturationFunc::RawCurve::Function::RelPerm;
+    curve.subsys = Opm::ECLSaturationFunc::RawCurve::SubSystem::OilWater;
+    curve.thisPh = Opm::ECLPhaseIndex::Liquid;
+    curve.curveSet = Opm::ECLSaturationFunc::RawCurve::CurveSet::Imbibition;
+
+    // Default scaling mode is horizontal + vertical
+    const auto scaling = Opm::ECLSaturationFunc::SatFuncScaling{};
+
+    // Grid ID is empty string for the main grid.
+    const auto gridID = std::string{};
+    const auto activeCell = this->G.localActiveCell(cell_16_31_10(), gridID);
+
+    const auto graphs = this->satFunc
+        .getSatFuncCurve(curves, this->init, gridID, activeCell, scaling);
+
+    BOOST_REQUIRE_EQUAL(graphs.size(), std::size_t{ 1 });
+
+    // Water saturations
+    {
+        const auto expect_sw = std::vector<double> {
+            0.050000000745058060,
+            0.12999999523162842,
+            0.16693338238494260,
+            0.20394078434217111,
+            0.24094818629939974,
+            0.27795558825662836,
+            0.31496299021385699,
+            0.35197039217108561,
+            0.38897779412831412,
+            0.42598519608554275,
+            0.46299259804277137,
+            0.50000000000000000,
+            0.53700740195722863,
+            0.57401480391445725,
+            0.61102220587168588,
+            0.64802960782891439,
+            0.68503700978614301,
+            0.72204441174337164,
+            0.75905181370060015,
+            0.79605921565782878,
+            0.83306661761505740,
+            0.87000000476837158,
+        };
+
+        const auto& sw = graphs.front().first;
+        BOOST_REQUIRE_EQUAL(sw.size(), expect_sw.size());
+
+        for (auto i = 0 * sw.size(); i < sw.size(); ++i) {
+            BOOST_TEST_MESSAGE("Compare Sw[" << i << "] with Expected Value");
+            BOOST_CHECK_CLOSE(sw[i], expect_sw[i], 1.0e-6);
+        }
+    }
+
+    // Relative permeability values
+    {
+        const auto expect_kr = std::vector<double> {
+            1.0, 0.999, 0.84782, 0.69746, 0.55717,
+            0.43286, 0.32757, 0.24177, 0.17415, 0.12237,
+            0.08374, 0.05565, 0.03572, 0.02199, 0.01284,
+            0.00699, 0.00346, 0.00149, 0.00051, 0.00012,
+            1.E-05, 0.0,
+        };
+
+        const auto& kr = graphs.front().second;
+        BOOST_REQUIRE_EQUAL(kr.size(), expect_kr.size());
+
+        for (auto i = 0 * kr.size(); i < kr.size(); ++i) {
+            BOOST_TEST_MESSAGE("Compare Krow[" << i << "] with Expected Value");
+            BOOST_CHECK_CLOSE(kr[i], expect_kr[i], 1.0e-6);
+        }
+    }
+}
+
+BOOST_AUTO_TEST_CASE(Relperm_Water)
+{
+    auto curves = std::vector<Opm::ECLSaturationFunc::RawCurve>{};
+
+    auto& curve = curves.emplace_back();
+    curve.curve = Opm::ECLSaturationFunc::RawCurve::Function::RelPerm;
+    curve.subsys = Opm::ECLSaturationFunc::RawCurve::SubSystem::OilWater;
+    curve.thisPh = Opm::ECLPhaseIndex::Aqua;
+    curve.curveSet = Opm::ECLSaturationFunc::RawCurve::CurveSet::Imbibition;
+
+    // Default scaling mode is horizontal + vertical.
+    const auto scaling = Opm::ECLSaturationFunc::SatFuncScaling{};
+
+    // Grid ID is empty string for the main grid.
+    const auto gridID = std::string{};
+    const auto activeCell = this->G.localActiveCell(cell_16_31_10(), gridID);
+
+    const auto graphs = this->satFunc
+        .getSatFuncCurve(curves, this->init, gridID, activeCell, scaling);
+
+    BOOST_REQUIRE_EQUAL(graphs.size(), std::size_t{ 1 });
+
+    // Water saturations
+    {
+        const auto expect_sw = std::vector<double> {
+            0.12999999523162842,
+            0.16693338238494257,
+            0.20394078434217117,
+            0.24094818629939979,
+            0.27795558825662836,
+            0.31496299021385699,
+            0.35197039217108561,
+            0.38897779412831418,
+            0.42598519608554281,
+            0.46299259804277143,
+            0.50000000000000000,
+            0.53700740195722863,
+            0.57401480391445725,
+            0.61102220587168588,
+            0.64802960782891439,
+            0.68503700978614301,
+            0.72204441174337164,
+            0.75905181370060026,
+            0.79605921565782889,
+            0.83306661761505740,
+            1.0000000000000000,
+        };
+
+        const auto& sw = graphs.front().first;
+        BOOST_REQUIRE_EQUAL(sw.size(), expect_sw.size());
+
+        for (auto i = 0 * sw.size(); i < sw.size(); ++i) {
+            BOOST_TEST_MESSAGE("Compare Sw[" << i << "] with Expected Value");
+            BOOST_CHECK_CLOSE(sw[i], expect_sw[i], 1.0e-6);
+        }
+    }
+
+    // Relative permeability values
+    {
+        const auto expect_kr = std::vector<double> {
+            0.0, 0.00086, 0.00263, 0.00524, 0.00877, 0.01338,
+            0.01927, 0.02672, 0.03608, 0.04781, 0.0625, 0.0809, 0.10394,
+            0.13277, 0.16869, 0.21302, 0.26667, 0.32918, 0.39706,
+            0.46103, 0.5,
+        };
+
+        const auto& kr = graphs.front().second;
+        BOOST_REQUIRE_EQUAL(kr.size(), expect_kr.size());
+
+        for (auto i = 0 * kr.size(); i < kr.size(); ++i) {
+            BOOST_TEST_MESSAGE("Compare Krw[" << i << "] with Expected Value");
+            BOOST_CHECK_CLOSE(kr[i], expect_kr[i], 1.0e-6);
+        }
+    }
+}
+
+BOOST_AUTO_TEST_CASE(CapPress_Gas_Oil)
+{
+    auto curves = std::vector<Opm::ECLSaturationFunc::RawCurve>{};
+
+    auto& curve = curves.emplace_back();
+    curve.curve = Opm::ECLSaturationFunc::RawCurve::Function::CapPress;
+    curve.subsys = Opm::ECLSaturationFunc::RawCurve::SubSystem::OilGas;
+    curve.thisPh = Opm::ECLPhaseIndex::Vapour;
+    curve.curveSet = Opm::ECLSaturationFunc::RawCurve::CurveSet::Imbibition;
+
+    // Default scaling mode is horizontal + vertical.
+    const auto scaling = Opm::ECLSaturationFunc::SatFuncScaling{};
+
+    // Grid ID is empty string for the main grid.
+    const auto gridID = std::string{};
+    const auto activeCell = this->G.localActiveCell(cell_16_31_10(), gridID);
+
+    const auto graphs = this->satFunc
+        .getSatFuncCurve(curves, this->init, gridID, activeCell, scaling);
+
+    BOOST_REQUIRE_EQUAL(graphs.size(), std::size_t{ 1 });
+
+    // Gas saturations
+    {
+        const auto expect_sg = std::vector<double> {
+            0.0000000000000000,
+            0.047499999403953552,
+            0.094999998807907104,
+            0.14249999821186066,
+            0.18999999761581421,
+            0.23749999701976776,
+            0.28499999642372131,
+            0.33249999582767487,
+            0.37999999523162842,
+            0.42749999463558197,
+            0.47499999403953552,
+            0.52249999344348907,
+            0.56999999284744263,
+            0.61749999225139618,
+            0.66499999165534973,
+            0.71249999105930328,
+            0.75999999046325684,
+            0.80749998986721039,
+            0.85499998927116394,
+            0.90249998867511749,
+            0.94990498808026314,
+            0.94999998807907104,
+        };
+
+        const auto& sg = graphs.front().first;
+        BOOST_REQUIRE_EQUAL(sg.size(), expect_sg.size());
+
+        for (auto i = 0 * sg.size(); i < sg.size(); ++i) {
+            BOOST_TEST_MESSAGE("Compare Sg[" << i << "] with Expected Value");
+            BOOST_CHECK_CLOSE(sg[i], expect_sg[i], 1.0e-6);
+        }
+    }
+
+    // Gas/oil capillary pressure (Pg - Po) values
+    {
+        const auto expect_pc = std::vector<double>{
+            0.0, 0.0, 0.0, 0.0, 0.0,
+            0.0, 0.0, 0.0, 0.0, 0.0,
+            0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+            0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+        };
+
+        const auto& pc = graphs.front().second;
+        BOOST_REQUIRE_EQUAL(pc.size(), expect_pc.size());
+
+        for (auto i = 0 * pc.size(); i < pc.size(); ++i) {
+            BOOST_TEST_MESSAGE("Compare Pcgo[" << i << "] with Expected Value");
+            BOOST_CHECK_CLOSE(pc[i], expect_pc[i], 1.0e-6);
+        }
+    }
+}
+
+BOOST_AUTO_TEST_CASE(CapPress_Oil_Water)
+{
+    auto curves = std::vector<Opm::ECLSaturationFunc::RawCurve>{};
+
+    auto& curve = curves.emplace_back();
+    curve.curve = Opm::ECLSaturationFunc::RawCurve::Function::CapPress;
+    curve.subsys = Opm::ECLSaturationFunc::RawCurve::SubSystem::OilWater;
+    curve.thisPh = Opm::ECLPhaseIndex::Aqua;
+    curve.curveSet = Opm::ECLSaturationFunc::RawCurve::CurveSet::Imbibition;
+
+    // Default scaling mode is horizontal + vertical.
+    const auto scaling = Opm::ECLSaturationFunc::SatFuncScaling{};
+
+    // Grid ID is empty string for the main grid.
+    const auto gridID = std::string{};
+    const auto activeCell = this->G.localActiveCell(cell_16_31_10(), gridID);
+
+    const auto graphs = this->satFunc
+        .getSatFuncCurve(curves, this->init, gridID, activeCell, scaling);
+
+    BOOST_REQUIRE_EQUAL(graphs.size(), std::size_t{ 1 });
+
+    // Water saturations
+    {
+        const auto expect_sw = std::vector<double> {
+            0.050000000745058060,
+            0.050095000744983555,
+            0.097500000707805151,
+            0.14500000067055224,
+            0.19250000063329933,
+            0.24000000059604645,
+            0.28750000055879354,
+            0.33500000052154061,
+            0.38250000048428773,
+            0.43000000044703485,
+            0.47750000040978197,
+            0.52500000037252903,
+            0.57250000033527615,
+            0.62000000029802316,
+            0.66750000026077039,
+            0.71500000022351740,
+            0.76250000018626451,
+            0.81000000014901163,
+            0.85750000011175864,
+            0.90500000007450587,
+            0.95250000003725288,
+            1.0000000000000000,
+        };
+
+        const auto& sw = graphs.front().first;
+        BOOST_REQUIRE_EQUAL(sw.size(), expect_sw.size());
+
+        for (auto i = 0 * sw.size(); i < sw.size(); ++i) {
+            BOOST_TEST_MESSAGE("Compare Sw[" << i << "] with Expected Value");
+            BOOST_CHECK_CLOSE(sw[i], expect_sw[i], 1.0e-6);
+        }
+    }
+
+    // Oil/water capillary pressure (Po - Pw) values
+    {
+        const auto expect_pc = std::vector<double> {
+            375633.0, 375632.0, 186981.0, 123731.0, 91821.0,
+            72451.0, 59341.0, 49811.0, 42511.0, 36691.0,
+            31911.0, 27881.0, 24401.0, 21351.0, 18631.0,
+            16161.0, 13901.0, 11801.0, 9831.0, 7961.0,
+            6161.0, 4408.0,
+        };
+
+        const auto& pc = graphs.front().second;
+        BOOST_REQUIRE_EQUAL(pc.size(), expect_pc.size());
+
+        for (auto i = 0 * pc.size(); i < pc.size(); ++i) {
+            BOOST_TEST_MESSAGE("Compare Pcow[" << i << "] with Expected Value");
+            BOOST_CHECK_CLOSE(pc[i], expect_pc[i], 1.0e-6);
+        }
+    }
+}
+
+BOOST_AUTO_TEST_SUITE_END() // Scaled
+
+BOOST_AUTO_TEST_SUITE_END() // Imbibition
 
 BOOST_AUTO_TEST_SUITE_END() // Saturation_Functions

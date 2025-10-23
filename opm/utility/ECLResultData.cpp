@@ -1689,6 +1689,11 @@ haveKeywordData(const std::string& vector,
     return this->pImpl_->haveKeywordData(vector, gridID);
 }
 
+bool Opm::ECLInitFileData::haveHysteresis(const std::string& gridID) const
+{
+    return this->keywordData<bool>("LOGIHEAD", gridID)[LOGIHEAD_HYSTERISIS_INDEX];
+}
+
 const ecl_file_type*
 Opm::ECLInitFileData::getRawFilePtr() const
 {

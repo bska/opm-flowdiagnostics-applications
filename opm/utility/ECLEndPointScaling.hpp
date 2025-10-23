@@ -530,6 +530,14 @@ namespace Opm { namespace SatFunc {
             OilGas,
         };
 
+        enum class CurveSet {
+            /// Primary drainage curve (SATNUM &c).
+            Drainage,
+
+            /// Imbibition curve (IMBNUM, I* vectors).
+            Imbibition,
+        };
+
         /// Set of options that uniquely define a single EPS operation.
         struct EPSOptions {
             /// Whether or not to employ the alternative (i.e., 3-pt) scaling
@@ -561,6 +569,11 @@ namespace Opm { namespace SatFunc {
             ///   auto eps = CreateEPS::fromECLOutput(G, init, opt);
             /// \endcode
             ::Opm::ECLPhaseIndex thisPh;
+
+            /// Set of curves used in this request.
+            ///
+            /// By default we compute points on the primary drainage curves.
+            CurveSet curveSet{ CurveSet::Drainage };
         };
 
         /// Collection of raw saturation table end points.
@@ -779,6 +792,7 @@ namespace Opm { namespace SatFunc {
                             const std::string&                  gridID,
                             const std::size_t                   activeCell,
                             const int                           satnum,
+                            const CreateEPS::EPSOptions&        opt,
                             const CreateEPS::RawTableEndPoints& tep);
 
     std::vector<double>
@@ -790,6 +804,7 @@ namespace Opm { namespace SatFunc {
                               const std::string&                  gridID,
                               const std::size_t                   activeCell,
                               const int                           satnum,
+                              const CreateEPS::EPSOptions&        opt,
                               const CreateEPS::RawTableEndPoints& tep);
 
 }} // namespace Opm::SatFunc

@@ -106,6 +106,9 @@ namespace Opm {
         /// \return The number of LGR grids plus one (the main grid).
         int numGrids() const;
 
+        int localActiveCell(const std::array<int,3>& ijk,
+                            const std::string&       gridID = "") const;
+
         /// Retrieve active cell ID from (I,J,K) tuple in particular grid.
         ///
         /// \param[in] ijk Cartesian index tuple of particular cell.

@@ -151,6 +151,38 @@ namespace {
 
         return (scaling.enable & T::Vertical) != 0;
     }
+
+    int saturationRegion(const ::Opm::ECLInitFileData&             init,
+                         const ::Opm::ECLSaturationFunc::RawCurve& curve,
+                         const std::string&                        gridID,
+                         const std::size_t                         activeCell)
+    {
+        if ((curve.curveSet == Opm::ECLSaturationFunc::RawCurve::CurveSet::Imbibition) &&
+            init.haveKeywordData("IMBNUM", gridID))
+        {
+            return init.keywordData<int>("IMBNUM", gridID)[activeCell];
+        }
+
+        return init.keywordData<int>("SATNUM", gridID)[activeCell];
+    }
+
+    Opm::SatFunc::CreateEPS::CurveSet
+    curveSet(const Opm::ECLSaturationFunc::RawCurve& crv)
+    {
+        using In = Opm::ECLSaturationFunc::RawCurve::CurveSet;
+        using Out = Opm::SatFunc::CreateEPS::CurveSet;
+
+        switch (crv.curveSet) {
+        case In::Drainage:
+            return Out::Drainage;
+
+        case In::Imbibition:
+            return Out::Imbibition;
+
+        default:
+            return Out::Drainage;
+        }
+    }
 } // Anonymous
 
 // =====================================================================
@@ -742,7 +774,7 @@ public:
     Impl(Impl&& rhs);
     Impl(const Impl& rhs);
 
-	void init(const ECLInitFileData& init);
+    void init(const ECLInitFileData& init);
 
     void initFullGridEPS(const ECLGraph&        G,
                          const ECLInitFileData& init);
@@ -760,13 +792,12 @@ public:
                     const ECLInitFileData&       init,
                     const std::string&           gridID,
                     const int                    activeCell,
-                    const int                    satnum,
                     const SatFuncScaling&        scaling) const;
 
 private:
-	using RawTEP = ::Opm::SatFunc::CreateEPS::RawTableEndPoints;
+    using RawTEP = ::Opm::SatFunc::CreateEPS::RawTableEndPoints;
 
-	class EPSEvaluator
+    class EPSEvaluator
     {
     public:
         using FuncCat = ::Opm::SatFunc::CreateEPS::FunctionCategory;
@@ -1464,12 +1495,13 @@ private:
         const SatFuncScaling& scaling = SatFuncScaling{}) const;
 
     FlowDiagnostics::Graph
-    kroCurve(const RawCurve::SubSystem subsys,
-             const ECLInitFileData&    init,
-             const std::string&        gridID,
-             const std::size_t         activeCell,
-             const int                 satnum,
-             const SatFuncScaling&     scaling) const;
+    kroCurve(const RawCurve::SubSystem          subsys,
+             const SatFunc::CreateEPS::CurveSet curveSet,
+             const ECLInitFileData&             init,
+             const std::string&                 gridID,
+             const std::size_t                  activeCell,
+             const int                          satnum,
+             const SatFuncScaling&              scaling) const;
 
     std::vector<double>
     krg(const ECLGraph&       G,
@@ -1477,18 +1509,20 @@ private:
         const SatFuncScaling& scaling = SatFuncScaling{}) const;
 
     FlowDiagnostics::Graph
-    krgCurve(const ECLInitFileData& init,
-             const std::string&     gridID,
-             const std::size_t      activeCell,
-             const int              satnum,
-             const SatFuncScaling&  scaling) const;
+    krgCurve(const SatFunc::CreateEPS::CurveSet curveSet,
+             const ECLInitFileData&             init,
+             const std::string&                 gridID,
+             const std::size_t                  activeCell,
+             const int                          satnum,
+             const SatFuncScaling&              scaling) const;
 
     FlowDiagnostics::Graph
-    pcgoCurve(const ECLInitFileData& init,
-              const std::string&     gridID,
-              const std::size_t      activeCell,
-              const int              satnum,
-              const SatFuncScaling&  scaling) const;
+    pcgoCurve(const SatFunc::CreateEPS::CurveSet curveSet,
+              const ECLInitFileData&             init,
+              const std::string&                 gridID,
+              const std::size_t                  activeCell,
+              const int                          satnum,
+              const SatFuncScaling&              scaling) const;
 
     std::vector<double>
     krw(const ECLGraph&       G,
@@ -1496,18 +1530,20 @@ private:
         const SatFuncScaling& scaling = SatFuncScaling{}) const;
 
     FlowDiagnostics::Graph
-    krwCurve(const ECLInitFileData& init,
-             const std::string&     gridID,
-             const std::size_t      activeCell,
-             const int              satnum,
-             const SatFuncScaling&  scaling) const;
+    krwCurve(const SatFunc::CreateEPS::CurveSet curveSet,
+             const ECLInitFileData&             init,
+             const std::string&                 gridID,
+             const std::size_t                  activeCell,
+             const int                          satnum,
+             const SatFuncScaling&              scaling) const;
 
     FlowDiagnostics::Graph
-    pcowCurve(const ECLInitFileData& init,
-              const std::string&     gridID,
-              const std::size_t      activeCell,
-              const int              satnum,
-              const SatFuncScaling&  scaling) const;
+    pcowCurve(const SatFunc::CreateEPS::CurveSet curveSet,
+              const ECLInitFileData&             init,
+              const std::string&                 gridID,
+              const std::size_t                  activeCell,
+              const int                          satnum,
+              const SatFuncScaling&              scaling) const;
 
     void scaleKrGasSat(const ECLRegionMapping& rmap,
                        const SatFuncScaling&   scaling,
@@ -1805,13 +1841,15 @@ getSatFuncCurve(const std::vector<RawCurve>& func,
                 const ECLInitFileData&       init,
                 const std::string&           gridID,
                 const int                    activeCell,
-                const int                    satnum,
                 const SatFuncScaling&        scaling) const
 {
     auto graph = std::vector<FlowDiagnostics::Graph>{};
     graph.reserve(func.size());
 
     for (const auto& fi : func) {
+        const auto satnum = saturationRegion(init, fi, gridID, activeCell);
+        const auto crvSet = curveSet(fi);
+
         switch (fi.thisPh) {
         case ECLPhaseIndex::Aqua:
         {
@@ -1825,8 +1863,8 @@ getSatFuncCurve(const std::vector<RawCurve>& func,
             }
 
             auto crv = (fi.curve == RawCurve::Function::RelPerm)
-                ? this->krwCurve (init, gridID, activeCell, satnum, scaling)
-                : this->pcowCurve(init, gridID, activeCell, satnum, scaling);
+                ? this->krwCurve (crvSet, init, gridID, activeCell, satnum, scaling)
+                : this->pcowCurve(crvSet, init, gridID, activeCell, satnum, scaling);
 
             graph.push_back(std::move(crv));
         }
@@ -1841,7 +1879,7 @@ getSatFuncCurve(const std::vector<RawCurve>& func,
             }
 
             const auto kro = this->kroCurve
-                (fi.subsys, init, gridID, activeCell, satnum, scaling);
+                (fi.subsys, crvSet, init, gridID, activeCell, satnum, scaling);
 
             // Maximum attainable value of "So + S{g,w}" in pertinent
             // two-phase system in this cell.  Expected to be 1-SWL for G/O
@@ -1865,8 +1903,8 @@ getSatFuncCurve(const std::vector<RawCurve>& func,
             }
 
             auto crv = (fi.curve == RawCurve::Function::RelPerm)
-                ? this->krgCurve (init, gridID, activeCell, satnum, scaling)
-                : this->pcgoCurve(init, gridID, activeCell, satnum, scaling);
+                ? this->krgCurve (crvSet, init, gridID, activeCell, satnum, scaling)
+                : this->pcgoCurve(crvSet, init, gridID, activeCell, satnum, scaling);
 
             graph.push_back(std::move(crv));
         }
@@ -1942,12 +1980,13 @@ kro(const ECLGraph&       G,
 
 Opm::FlowDiagnostics::Graph
 Opm::ECLSaturationFunc::Impl::
-kroCurve(const RawCurve::SubSystem subsys,
-         const ECLInitFileData&    init,
-         const std::string&        gridID,
-         const std::size_t         activeCell,
-         const int                 satnum,
-         const SatFuncScaling&     scaling) const
+kroCurve(const RawCurve::SubSystem          subsys,
+         const SatFunc::CreateEPS::CurveSet curveSet,
+         const ECLInitFileData&             init,
+         const std::string&                 gridID,
+         const std::size_t                  activeCell,
+         const int                          satnum,
+         const SatFuncScaling&              scaling) const
 {
     if (! this->oil_) {
         return FlowDiagnostics::Graph{};
@@ -1963,6 +2002,8 @@ kroCurve(const RawCurve::SubSystem subsys,
         : SatFunc::CreateEPS::SubSystem::OilWater;
 
     opt.thisPh = ECLPhaseIndex::Liquid;
+
+    opt.curveSet = curveSet;
 
     const auto unscaledEndPt = SatFunc::CreateEPS::
         Horizontal::unscaledEndPoints(opt, *this->tep_);
@@ -2088,11 +2129,12 @@ krg(const ECLGraph&       G,
 
 Opm::FlowDiagnostics::Graph
 Opm::ECLSaturationFunc::Impl::
-krgCurve(const ECLInitFileData& init,
-         const std::string&     gridID,
-         const std::size_t      activeCell,
-         const int              satnum,
-         const SatFuncScaling&  scaling) const
+krgCurve(const SatFunc::CreateEPS::CurveSet curveSet,
+         const ECLInitFileData&             init,
+         const std::string&                 gridID,
+         const std::size_t                  activeCell,
+         const int                          satnum,
+         const SatFuncScaling&              scaling) const
 {
     if (! this->gas_) {
         return FlowDiagnostics::Graph{};
@@ -2104,6 +2146,7 @@ krgCurve(const ECLInitFileData& init,
     opt.curve = SatFunc::CreateEPS::FunctionCategory::Relperm;
     opt.subSys = SatFunc::CreateEPS::SubSystem::OilGas;
     opt.thisPh = ECLPhaseIndex::Vapour;
+    opt.curveSet = curveSet;
 
     const auto unscaledEndPt = SatFunc::CreateEPS::
         Horizontal::unscaledEndPoints(opt, *this->tep_);
@@ -2181,11 +2224,12 @@ krgCurve(const ECLInitFileData& init,
 
 Opm::FlowDiagnostics::Graph
 Opm::ECLSaturationFunc::Impl::
-pcgoCurve(const ECLInitFileData& init,
-          const std::string&     gridID,
-          const std::size_t      activeCell,
-          const int              satnum,
-          const SatFuncScaling&  scaling) const
+pcgoCurve(const SatFunc::CreateEPS::CurveSet curveSet,
+          const ECLInitFileData&             init,
+          const std::string&                 gridID,
+          const std::size_t                  activeCell,
+          const int                          satnum,
+          const SatFuncScaling&              scaling) const
 {
     if (! this->gas_) {
         return FlowDiagnostics::Graph{};
@@ -2197,6 +2241,7 @@ pcgoCurve(const ECLInitFileData& init,
     opt.curve = SatFunc::CreateEPS::FunctionCategory::CapPress;
     opt.subSys = SatFunc::CreateEPS::SubSystem::OilGas;
     opt.thisPh = ECLPhaseIndex::Vapour;
+    opt.curveSet = curveSet;
 
     const auto unscaledEndPt = SatFunc::CreateEPS::
         Horizontal::unscaledEndPoints(opt, *this->tep_);
@@ -2321,11 +2366,12 @@ krw(const ECLGraph&       G,
 
 Opm::FlowDiagnostics::Graph
 Opm::ECLSaturationFunc::Impl::
-krwCurve(const ECLInitFileData& init,
-         const std::string&     gridID,
-         const std::size_t      activeCell,
-         const int              satnum,
-         const SatFuncScaling&  scaling) const
+krwCurve(const SatFunc::CreateEPS::CurveSet curveSet,
+         const ECLInitFileData&             init,
+         const std::string&                 gridID,
+         const std::size_t                  activeCell,
+         const int                          satnum,
+         const SatFuncScaling&              scaling) const
 {
     if (! this->wat_) {
         return FlowDiagnostics::Graph{};
@@ -2337,6 +2383,7 @@ krwCurve(const ECLInitFileData& init,
     opt.curve = SatFunc::CreateEPS::FunctionCategory::Relperm;
     opt.subSys = SatFunc::CreateEPS::SubSystem::OilWater;
     opt.thisPh = ECLPhaseIndex::Aqua;
+    opt.curveSet = curveSet;
 
     const auto unscaledEndPt = SatFunc::CreateEPS::
         Horizontal::unscaledEndPoints(opt, *this->tep_);
@@ -2413,11 +2460,12 @@ krwCurve(const ECLInitFileData& init,
 
 Opm::FlowDiagnostics::Graph
 Opm::ECLSaturationFunc::Impl::
-pcowCurve(const ECLInitFileData& init,
-          const std::string&     gridID,
-          const std::size_t      activeCell,
-          const int              satnum,
-          const SatFuncScaling&  scaling) const
+pcowCurve(const SatFunc::CreateEPS::CurveSet curveSet,
+          const ECLInitFileData&             init,
+          const std::string&                 gridID,
+          const std::size_t                  activeCell,
+          const int                          satnum,
+          const SatFuncScaling&              scaling) const
 {
     if (! this->wat_) {
         return FlowDiagnostics::Graph{};
@@ -2429,6 +2477,7 @@ pcowCurve(const ECLInitFileData& init,
     opt.curve = SatFunc::CreateEPS::FunctionCategory::CapPress;
     opt.subSys = SatFunc::CreateEPS::SubSystem::OilWater;
     opt.thisPh = ECLPhaseIndex::Aqua;
+    opt.curveSet = curveSet;
 
     const auto unscaledEndPt = SatFunc::CreateEPS::
         Horizontal::unscaledEndPoints(opt, *this->tep_);
@@ -2659,20 +2708,31 @@ max2PSatSum(const RawCurve&        fi,
             const std::size_t      satnum,
             const SatFuncScaling&  scaling) const
 {
+    auto opt = SatFunc::CreateEPS::EPSOptions{};
+
+    opt.use3PtScaling = this->use3PtScaling_;
+    opt.curve = SatFunc::CreateEPS::FunctionCategory::Relperm;
+    opt.thisPh = ECLPhaseIndex::Liquid;
+    opt.curveSet = curveSet(fi);
+
     if (fi.subsys == RawCurve::SubSystem::OilGas) {
+        opt.subSys = SatFunc::CreateEPS::SubSystem::OilGas;
+
         // Max 2p Saturation sum = 1 - SWL
         return enableHorizontalEPS(scaling)
             ? 1.0 - SatFunc::scaledConnateWater(init, gridID,
                                                 activeCell, satnum,
-                                                *this->tep_)
+                                                opt, *this->tep_)
             : 1.0 - this->tep_->conn.water[satnum - 1];
     }
     else {
+        opt.subSys = SatFunc::CreateEPS::SubSystem::OilWater;
+
         // Max 2p Saturation sum = 1 - SGL (almost always = 1)
         return enableHorizontalEPS(scaling)
             ? 1.0 - SatFunc::scaledConnateGas(init, gridID,
                                               activeCell, satnum,
-                                              *this->tep_)
+                                              opt, *this->tep_)
             : 1.0 - this->tep_->conn.gas[satnum - 1];
     }
 }
@@ -2729,35 +2789,15 @@ relperm(const ECLGraph&        G,
     return this->pImpl_->relperm(G, init, rstrt, p);
 }
 
-#if 0
-std::vector<Opm::FlowDiagnostics::Graph>
-Opm::ECLSaturationFunc::
-getSatFuncCurve(const std::vector<RawCurve>& func,
-                const int                    activeCell,
-                const bool                   useEPS) const
-{
-    auto scaling = SatFuncScaling{};
-
-    if (! useEPS) {
-        scaling.enable = static_cast<unsigned char>(0);
-    }
-
-    return this->getSatFuncCurve(func, activeCell, scaling);
-}
-#endif
-
 std::vector<Opm::FlowDiagnostics::Graph>
 Opm::ECLSaturationFunc::
 getSatFuncCurve(const std::vector<RawCurve>& func,
                 const ECLInitFileData&       init,
                 const std::string&           gridID,
                 const int                    activeCell,
-                const int                    satnum,
                 const SatFuncScaling&        scaling) const
 {
-    return this->pImpl_->getSatFuncCurve(func, init, gridID,
-                                         activeCell, satnum,
-                                         scaling);
+    return this->pImpl_->getSatFuncCurve(func, init, gridID, activeCell, scaling);
 }
 
 // =====================================================================
