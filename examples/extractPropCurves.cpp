@@ -43,25 +43,24 @@
 namespace {
     template <class OStream>
     void printGraph(OStream&                                        os,
-                    const std::string&                              name,
+                    const std::string&                              indep,
+                    const std::string&                              dep,
                     const std::vector<Opm::FlowDiagnostics::Graph>& graphs)
     {
         const auto oprec  = os.precision(16);
         const auto oflags = os.setf(std::ios_base::scientific);
 
-        auto k = 1;
         for (const auto& graph : graphs) {
             const auto& x = graph.first;
             const auto& y = graph.second;
 
-            //os << name << '{' << k << "} = extendTab([\n";
+            os << indep << ' ' << dep << '\n';
 
             for (auto n = x.size(), i = 0*n; i < n; ++i) {
                 os << x[i] << ' ' << y[i] << '\n';
             }
 
-            //os << "]);\n\n";
-            k += 1;
+            os << "\n\n";
         }
 
         os.setf(oflags);
@@ -70,26 +69,26 @@ namespace {
 
     template <class OStream>
     void printGraph(OStream&                                  os,
-                    const std::string&                        name,
+                    const std::string&                        pressure,
+                    const std::string&                        mixRat,
+                    const std::string&                        function,
                     const std::vector<Opm::ECLPVT::PVTGraph>& graphs)
     {
         const auto oprec  = os.precision(16);
         const auto oflags = os.setf(std::ios_base::scientific);
 
-        auto k = 1;
         for (const auto& graph : graphs) {
             const auto& p = graph.press;
             const auto& R = graph.mixRat;
             const auto& f = graph.value;
 
-            os << name << '{' << k << "} = [\n";
+            os << pressure << ' ' << mixRat << ' ' << function << '\n';
 
             for (auto n = p.size(), i = 0*n; i < n; ++i) {
                 os << p[i] << ' ' << R[i] << ' ' << f[i] << '\n';
             }
 
-            os << "];\n\n";
-            k += 1;
+            os << "\n\n";
         }
 
         os.setf(oflags);
@@ -99,10 +98,25 @@ namespace {
     // -----------------------------------------------------------------
     // Relative permeability
 
+    using CurveSet = Opm::ECLSaturationFunc::RawCurve::CurveSet;
+
+    std::string curveName(const CurveSet     curveSet,
+                          const std::string& baseName)
+    {
+        if (curveSet == CurveSet::Imbibition) {
+            return "I" + baseName;
+        }
+        else {
+            return baseName;
+        }
+    }
+
     void krg(const Opm::ECLSaturationFunc&                 sfunc,
              const Opm::ECLInitFileData&                   init,
+             const std::string&                            gridID,
              const int                                     activeCell,
-             const Opm::ECLSaturationFunc::SatFuncScaling& scaling)
+             const Opm::ECLSaturationFunc::SatFuncScaling& scaling,
+             const CurveSet                                curveSet)
     {
         using RC = Opm::ECLSaturationFunc::RawCurve;
 
@@ -113,23 +127,22 @@ namespace {
         func.push_back(RC{
             RC::Function::RelPerm,
             RC::SubSystem::OilGas,
-            Opm::ECLPhaseIndex::Vapour
+            Opm::ECLPhaseIndex::Vapour,
+            curveSet,
         });
 
-        const auto gridID = std::string{}; // Empty => global grid.
-
-        const auto satnum = init.keywordData<int>("SATNUM", gridID)[activeCell];
-
         const auto graph = sfunc
-            .getSatFuncCurve(func, init, gridID, activeCell, satnum, scaling);
+            .getSatFuncCurve(func, init, gridID, activeCell, scaling);
 
-        printGraph(std::cout, "crv.krg", graph);
+        printGraph(std::cout, "Sg", curveName(curveSet, "Krg"), graph);
     }
 
     void krog(const Opm::ECLSaturationFunc&                 sfunc,
               const Opm::ECLInitFileData&                   init,
+              const std::string&                            gridID,
               const int                                     activeCell,
-              const Opm::ECLSaturationFunc::SatFuncScaling& scaling)
+              const Opm::ECLSaturationFunc::SatFuncScaling& scaling,
+              const CurveSet                                curveSet)
     {
         using RC = Opm::ECLSaturationFunc::RawCurve;
 
@@ -140,23 +153,22 @@ namespace {
         func.push_back(RC{
             RC::Function::RelPerm,
             RC::SubSystem::OilGas,
-            Opm::ECLPhaseIndex::Liquid
+            Opm::ECLPhaseIndex::Liquid,
+            curveSet,
         });
 
-        const auto gridID = std::string{}; // Empty => global grid.
-
-        const auto satnum = init.keywordData<int>("SATNUM", gridID)[activeCell];
-
         const auto graph = sfunc
-            .getSatFuncCurve(func, init, gridID, activeCell, satnum, scaling);
+            .getSatFuncCurve(func, init, gridID, activeCell, scaling);
 
-        printGraph(std::cout, "crv.krog", graph);
+        printGraph(std::cout, "Sg", curveName(curveSet, "Krog"), graph);
     }
 
     void krow(const Opm::ECLSaturationFunc&                 sfunc,
               const Opm::ECLInitFileData&                   init,
+              const std::string&                            gridID,
               const int                                     activeCell,
-              const Opm::ECLSaturationFunc::SatFuncScaling& scaling)
+              const Opm::ECLSaturationFunc::SatFuncScaling& scaling,
+              const CurveSet                                curveSet)
     {
         using RC = Opm::ECLSaturationFunc::RawCurve;
 
@@ -167,23 +179,22 @@ namespace {
         func.push_back(RC{
             RC::Function::RelPerm,
             RC::SubSystem::OilWater,
-            Opm::ECLPhaseIndex::Liquid
+            Opm::ECLPhaseIndex::Liquid,
+            curveSet,
         });
 
-        const auto gridID = std::string{}; // Empty => global grid.
-
-        const auto satnum = init.keywordData<int>("SATNUM", gridID)[activeCell];
-
         const auto graph = sfunc
-            .getSatFuncCurve(func, init, gridID, activeCell, satnum, scaling);
+            .getSatFuncCurve(func, init, gridID, activeCell, scaling);
 
-        printGraph(std::cout, "crv.krow", graph);
+        printGraph(std::cout, "Sw", curveName(curveSet, "Krow"), graph);
     }
 
     void krw(const Opm::ECLSaturationFunc&                 sfunc,
              const Opm::ECLInitFileData&                   init,
+             const std::string&                            gridID,
              const int                                     activeCell,
-             const Opm::ECLSaturationFunc::SatFuncScaling& scaling)
+             const Opm::ECLSaturationFunc::SatFuncScaling& scaling,
+             const CurveSet                                curveSet)
     {
         using RC = Opm::ECLSaturationFunc::RawCurve;
 
@@ -194,17 +205,14 @@ namespace {
         func.push_back(RC{
             RC::Function::RelPerm,
             RC::SubSystem::OilWater,
-            Opm::ECLPhaseIndex::Aqua
+            Opm::ECLPhaseIndex::Aqua,
+            curveSet,
         });
 
-        const auto gridID = std::string{}; // Empty => global grid.
-
-        const auto satnum = init.keywordData<int>("SATNUM", gridID)[activeCell];
-
         const auto graph = sfunc
-            .getSatFuncCurve(func, init, gridID, activeCell, satnum, scaling);
+            .getSatFuncCurve(func, init, gridID, activeCell, scaling);
 
-        printGraph(std::cout, "crv.krw", graph);
+        printGraph(std::cout, "Sw", curveName(curveSet, "Krw"), graph);
     }
 
     // -----------------------------------------------------------------
@@ -212,8 +220,10 @@ namespace {
 
     void pcgo(const Opm::ECLSaturationFunc&                 sfunc,
               const Opm::ECLInitFileData&                   init,
+              const std::string&                            gridID,
               const int                                     activeCell,
-              const Opm::ECLSaturationFunc::SatFuncScaling& scaling)
+              const Opm::ECLSaturationFunc::SatFuncScaling& scaling,
+              const CurveSet                                curveSet)
     {
         using RC = Opm::ECLSaturationFunc::RawCurve;
 
@@ -224,23 +234,22 @@ namespace {
         func.push_back(RC{
             RC::Function::CapPress,
             RC::SubSystem::OilGas,
-            Opm::ECLPhaseIndex::Vapour
+            Opm::ECLPhaseIndex::Vapour,
+            curveSet,
         });
 
-        const auto gridID = std::string{}; // Empty => global grid.
-
-        const auto satnum = init.keywordData<int>("SATNUM", gridID)[activeCell];
-
         const auto graph = sfunc
-            .getSatFuncCurve(func, init, gridID, activeCell, satnum, scaling);
+            .getSatFuncCurve(func, init, gridID, activeCell, scaling);
 
-        printGraph(std::cout, "crv.pcgo", graph);
+        printGraph(std::cout, "Sg", curveName(curveSet, "Pcgo"), graph);
     }
 
     void pcow(const Opm::ECLSaturationFunc&                 sfunc,
               const Opm::ECLInitFileData&                   init,
+              const std::string&                            gridID,
               const int                                     activeCell,
-              const Opm::ECLSaturationFunc::SatFuncScaling& scaling)
+              const Opm::ECLSaturationFunc::SatFuncScaling& scaling,
+              const CurveSet                                curveSet)
     {
         using RC = Opm::ECLSaturationFunc::RawCurve;
 
@@ -251,91 +260,88 @@ namespace {
         func.push_back(RC{
             RC::Function::CapPress,
             RC::SubSystem::OilWater,
-            Opm::ECLPhaseIndex::Aqua
+            Opm::ECLPhaseIndex::Aqua,
+            curveSet,
         });
 
-        const auto gridID = std::string{}; // Empty => global grid.
-
-        const auto satnum = init.keywordData<int>("SATNUM", gridID)[activeCell];
-
         const auto graph = sfunc
-            .getSatFuncCurve(func, init, gridID, activeCell, satnum, scaling);
+            .getSatFuncCurve(func, init, gridID, activeCell, scaling);
 
-        printGraph(std::cout, "crv.pcow", graph);
+        printGraph(std::cout, "Sw", curveName(curveSet, "Pcow"), graph);
     }
 
     // -----------------------------------------------------------------
     // PVT Curves
 
     void Bg(const Opm::ECLPVT::ECLPvtCurveCollection& pvtCurves,
-            const int                                 activeCell)
+            const int                                 pvtNum)
     {
         using RC = Opm::ECLPVT::RawCurve;
 
         const auto graph = pvtCurves
-            .getPvtCurve(RC::FVF, Opm::ECLPhaseIndex::Vapour, activeCell);
+            .getPvtCurve(RC::FVF, Opm::ECLPhaseIndex::Vapour, pvtNum);
 
-        printGraph(std::cout, "crv.Bg", graph);
+        printGraph(std::cout, "Pg", "Rv", "Bg", graph);
     }
 
     void mu_g(const Opm::ECLPVT::ECLPvtCurveCollection& pvtCurves,
-              const int                                 activeCell)
+              const int                                 pvtNum)
     {
         using RC = Opm::ECLPVT::RawCurve;
 
         const auto graph = pvtCurves
-            .getPvtCurve(RC::Viscosity, Opm::ECLPhaseIndex::Vapour, activeCell);
+            .getPvtCurve(RC::Viscosity, Opm::ECLPhaseIndex::Vapour, pvtNum);
 
-        printGraph(std::cout, "crv.mu_g", graph);
+        printGraph(std::cout, "Pg", "Rv", "mu_g", graph);
     }
 
     void Bo(const Opm::ECLPVT::ECLPvtCurveCollection& pvtCurves,
-            const int                                 activeCell)
+            const int                                 pvtNum)
     {
         using RC = Opm::ECLPVT::RawCurve;
 
         const auto graph = pvtCurves
-            .getPvtCurve(RC::FVF, Opm::ECLPhaseIndex::Liquid, activeCell);
+            .getPvtCurve(RC::FVF, Opm::ECLPhaseIndex::Liquid, pvtNum);
 
-        printGraph(std::cout, "crv.Bo", graph);
+        printGraph(std::cout, "Po", "Rs", "Bo", graph);
     }
 
     void mu_o(const Opm::ECLPVT::ECLPvtCurveCollection& pvtCurves,
-              const int                                 activeCell)
+              const int                                 pvtNum)
     {
         using RC = Opm::ECLPVT::RawCurve;
 
         const auto graph = pvtCurves
-            .getPvtCurve(RC::Viscosity, Opm::ECLPhaseIndex::Liquid, activeCell);
+            .getPvtCurve(RC::Viscosity, Opm::ECLPhaseIndex::Liquid, pvtNum);
 
-        printGraph(std::cout, "crv.mu_o", graph);
+        printGraph(std::cout, "Po", "Rs", "mu_o", graph);
     }
 
     // -----------------------------------------------------------------
     // Saturated states (RvSat(Pg) and RsSat(Po))
 
     void rvSat(const Opm::ECLPVT::ECLPvtCurveCollection& pvtCurves,
-               const int                                 activeCell)
+               const int                                 pvtNum)
     {
         using RC = Opm::ECLPVT::RawCurve;
         using PI = Opm::ECLPhaseIndex;
 
         const auto graph = pvtCurves
-            .getPvtCurve(RC::SaturatedState, PI::Vapour, activeCell);
+            .getPvtCurve(RC::SaturatedState, PI::Vapour, pvtNum);
 
-        printGraph(std::cout, "crv.rvSat", graph);
+        printGraph(std::cout, "Pg", "Rv", "rvSat", graph);
     }
 
     void rsSat(const Opm::ECLPVT::ECLPvtCurveCollection& pvtCurves,
-               const int                                 activeCell)
+               const int                                 pvtNum)
     {
         using RC = Opm::ECLPVT::RawCurve;
         using PI = Opm::ECLPhaseIndex;
 
         const auto graph = pvtCurves
-            .getPvtCurve(RC::SaturatedState, PI::Liquid, activeCell);
+            .getPvtCurve(RC::SaturatedState, PI::Liquid, pvtNum);
 
-        printGraph(std::cout, "crv.rsSat", graph);
+        printGraph(std::cout, "Po", "Rs", "rsSat", graph);
     }
 
     // -----------------------------------------------------------------
@@ -370,12 +376,14 @@ namespace {
         return Opm::ECLUnits::serialisedUnitConventions(init);
     }
 
-    int getActiveCell(const Opm::ECLGraph&       G,
-                      const Opm::ParameterGroup& prm)
+    int getActiveCell(const Opm::ECLInitFileData&             init,
+                      const Opm::ECLCaseUtilities::ResultSet& rset,
+                      const Opm::ParameterGroup&              prm)
     {
         if (prm.has("cell")) { return prm.get<int>("cell"); }
 
-        const auto grid = prm.getDefault("gridName", std::string(""));
+        const auto graph = Opm::ECLGraph::load(rset.gridFile(), init);
+        const auto grid = prm.getDefault("gridName", std::string{});
 
         auto ijk = std::array<int,3>{ { 0, 0, 0 } };
 
@@ -388,7 +396,7 @@ namespace {
         if      (prm.has("K")) { ijk[2] = prm.get<int>("K") - 1; } // 1-based
         else if (prm.has("k")) { ijk[2] = prm.get<int>("k") - 0; } // 0-based
 
-        const auto acell = G.activeCell(ijk, grid);
+        const auto acell = graph.localActiveCell(ijk, grid);
 
         if (acell < 0) {
             std::cerr << "Cell ("
@@ -444,9 +452,12 @@ try {
 
     const auto rset  = example::identifyResultSet(prm);
     const auto init  = Opm::ECLInitFileData(rset.initFile());
-    const auto graph = Opm::ECLGraph::load(rset.gridFile(), init);
 
-    const auto cellID = getActiveCell(graph, prm);
+    const auto gridID = prm.getDefault("gridName", std::string{});
+    const auto cellID = getActiveCell(init, rset, prm);
+
+    const auto pvtNum = init.keywordData<int>("PVTNUM", gridID)[cellID];
+    const auto haveHyst = init.haveHysteresis();
 
     auto sfunc = Opm::ECLSaturationFunc(init);
     auto pvtCC = Opm::ECLPVT::ECLPvtCurveCollection(init);
@@ -458,32 +469,103 @@ try {
         pvtCC.setOutputUnits(std::move(units));
     }
 
-    std::cout << "function crv = pcurves()\n";
-
     // -----------------------------------------------------------------
     // Relative permeability
 
-    if (prm.getDefault("krg" , false)) { krg (sfunc, init, cellID, scaling); }
-    if (prm.getDefault("krog", false)) { krog(sfunc, init, cellID, scaling); }
-    if (prm.getDefault("krow", false)) { krow(sfunc, init, cellID, scaling); }
-    if (prm.getDefault("krw" , false)) { krw (sfunc, init, cellID, scaling); }
+    if (prm.getDefault("krg", false)) {
+        krg(sfunc, init, gridID, cellID, scaling, CurveSet::Drainage);
+    }
+
+    if (prm.getDefault("ikrg", false)) {
+        if (haveHyst) {
+            krg(sfunc, init, gridID, cellID, scaling, CurveSet::Imbibition);
+        }
+        else {
+            std::cerr << "IKrg not available in this result set\n";
+        }
+    }
+
+    if (prm.getDefault("krog", false)) {
+        krog(sfunc, init, gridID, cellID, scaling, CurveSet::Drainage);
+    }
+
+    if (prm.getDefault("ikrog", false)) {
+        if (haveHyst) {
+            krog(sfunc, init, gridID, cellID, scaling, CurveSet::Imbibition);
+        }
+        else {
+            std::cerr << "IKrog not available in this result set\n";
+        }
+    }
+
+    if (prm.getDefault("krow", false)) {
+        krow(sfunc, init, gridID, cellID, scaling, CurveSet::Drainage);
+    }
+
+    if (prm.getDefault("ikrow", false)) {
+        if (haveHyst) {
+            krow(sfunc, init, gridID, cellID, scaling, CurveSet::Imbibition);
+        }
+        else {
+            std::cerr << "IKrow not available in this result set\n";
+        }
+    }
+
+    if (prm.getDefault("krw", false)) {
+        krw(sfunc, init, gridID, cellID, scaling, CurveSet::Drainage);
+    }
+
+    if (prm.getDefault("ikrw", false)) {
+        if (haveHyst) {
+            krw(sfunc, init, gridID, cellID, scaling, CurveSet::Imbibition);
+        }
+        else {
+            std::cerr << "IKrw not available in this result set\n";
+        }
+    }
 
     // -----------------------------------------------------------------
     // Capillary pressure
     if (prm.getDefault("pcog", false) || // Alias pcog -> pcgo
-        prm.getDefault("pcgo", false)) { pcgo(sfunc, init, cellID, scaling); }
-    if (prm.getDefault("pcow", false)) { pcow(sfunc, init, cellID, scaling); }
+        prm.getDefault("pcgo", false))
+    {
+        pcgo(sfunc, init, gridID, cellID, scaling, CurveSet::Drainage);
+    }
+
+    if (prm.getDefault("ipcog", false) || // Alias pcog -> pcgo
+        prm.getDefault("ipcgo", false))
+    {
+        if (haveHyst) {
+            pcgo(sfunc, init, gridID, cellID, scaling, CurveSet::Imbibition);
+        }
+        else {
+            std::cerr << "IPcog not available in this result set\n";
+        }
+    }
+
+    if (prm.getDefault("pcow", false)) {
+        pcow(sfunc, init, gridID, cellID, scaling, CurveSet::Drainage);
+    }
+
+    if (prm.getDefault("ipcow", false)) {
+        if (haveHyst) {
+            pcow(sfunc, init, gridID, cellID, scaling, CurveSet::Imbibition);
+        }
+        else {
+            std::cerr << "IPcow not available in this result set\n";
+        }
+    }
 
     // -----------------------------------------------------------------
     // PVT Curves
 
-    if (prm.getDefault("Bg"  , false)) { Bg  (pvtCC, cellID); }
-    if (prm.getDefault("mu_g", false)) { mu_g(pvtCC, cellID); }
-    if (prm.getDefault("Bo"  , false)) { Bo  (pvtCC, cellID); }
-    if (prm.getDefault("mu_o", false)) { mu_o(pvtCC, cellID); }
+    if (prm.getDefault("Bg"  , false)) { Bg  (pvtCC, pvtNum); }
+    if (prm.getDefault("mu_g", false)) { mu_g(pvtCC, pvtNum); }
+    if (prm.getDefault("Bo"  , false)) { Bo  (pvtCC, pvtNum); }
+    if (prm.getDefault("mu_o", false)) { mu_o(pvtCC, pvtNum); }
 
-    if (prm.getDefault("rvSat", false)) { rvSat(pvtCC, cellID); }
-    if (prm.getDefault("rsSat", false)) { rsSat(pvtCC, cellID); }
+    if (prm.getDefault("rvSat", false)) { rvSat(pvtCC, pvtNum); }
+    if (prm.getDefault("rsSat", false)) { rsSat(pvtCC, pvtNum); }
 }
 catch (const std::exception& e) {
     std::cerr << "Caught Exception: " << e.what() << '\n';
