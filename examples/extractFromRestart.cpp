@@ -22,10 +22,14 @@
 #include <config.h>
 #endif
 
-#include <opm/common/utility/parameters/ParameterGroup.hpp>
 #include <opm/utility/ECLResultData.hpp>
 
+#include <opm/utility/imported/ParameterGroup.hpp>
+
+#include <cstdlib>
 #include <iostream>
+#include <string>
+#include <vector>
 
 // Syntax (typical):
 //   extractFromRestart unrst=<ecl_unrst file> step=<report_number> keyword=<keyword to dump> grid_id=<grid number>
@@ -43,7 +47,7 @@ int main(int argc, char* argv[]) {
 
         if (!restart_file.selectReportStep(report_step)) {
             std::cerr << "Could not find report step " << report_step << "." << std::endl;
-            exit(-1);
+            std::exit(-1);
         }
 
         if (restart_file.haveKeywordData(keyword, grid_id)) {
@@ -66,7 +70,7 @@ int main(int argc, char* argv[]) {
         else {
             std::cerr << "Could not find the keyword " << keyword
                     << " in report step " << report_step << "." << std::endl;
-            exit(-1);
+            std::exit(-1);
         }
     }
     catch (const std::exception& e) {

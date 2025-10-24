@@ -21,10 +21,6 @@
 #ifndef OPM_EXAMPLESETUP_HEADER_INCLUDED
 #define OPM_EXAMPLESETUP_HEADER_INCLUDED
 
-
-
-#include <opm/common/utility/parameters/ParameterGroup.hpp>
-
 #include <opm/flowdiagnostics/ConnectivityGraph.hpp>
 #include <opm/flowdiagnostics/ConnectionValues.hpp>
 #include <opm/flowdiagnostics/Toolbox.hpp>
@@ -35,6 +31,8 @@
 #include <opm/utility/ECLPhaseIndex.hpp>
 #include <opm/utility/ECLResultData.hpp>
 #include <opm/utility/ECLWellSolution.hpp>
+
+#include <opm/utility/imported/ParameterGroup.hpp>
 
 #include <exception>
 #include <initializer_list>

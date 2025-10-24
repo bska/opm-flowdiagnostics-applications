@@ -25,9 +25,7 @@
 
 #define BOOST_TEST_MODULE TEST_ECLPROPTABLE
 
-#include <opm/common/utility/platform_dependent/disable_warnings.h>
 #include <boost/test/unit_test.hpp>
-#include <opm/common/utility/platform_dependent/reenable_warnings.h>
 
 #include <opm/utility/ECLPropTable.hpp>
 

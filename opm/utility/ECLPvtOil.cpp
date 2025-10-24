@@ -390,24 +390,6 @@ private:
     using TableInterpolant = ::Opm::ECLPVT::PVTx<SubtableInterpolant>;
 
     TableInterpolant interp_;
-
-    std::vector<Opm::FlowDiagnostics::Graph>
-    repackagePvtCurve(std::vector<Opm::FlowDiagnostics::Graph>&& graphs,
-                      const Opm::ECLPVT::RawCurve                curve) const
-    {
-        if (curve != Opm::ECLPVT::RawCurve::SaturatedState) {
-            // Not saturated state curve.  Nothing to do here.
-            return graphs;
-        }
-
-        // Saturated state curve for live oil.  Columns are (Rs, Po).  Swap
-        // first and second columns to normalised form: (Po, Rs).
-        for (auto& graph : graphs) {
-            graph.first.swap(graph.second);
-        }
-
-        return graphs;
-    }
 };
 
 // #####################################################################
