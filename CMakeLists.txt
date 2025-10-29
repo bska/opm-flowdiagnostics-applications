@@ -325,9 +325,27 @@ target_link_libraries(test_eclunithandling
   PRIVATE OpmFDApplications Boost::unit_test_framework
   )
 
+add_executable(test_propcurves_integration tests/test_propcurves_integration.cpp)
+target_link_libraries(test_propcurves_integration
+  PUBLIC Boost::filesystem
+  PRIVATE OpmFDApplications Boost::unit_test_framework
+)
+
+add_custom_target(copy_integration_test_input ALL
+  COMMAND ${CMAKE_COMMAND} -E echo "Making integration test data available in output directory"
+  COMMAND ${CMAKE_COMMAND} -E copy_directory_if_different
+    "${CMAKE_CURRENT_SOURCE_DIR}/tests/Integration"
+    "${CMAKE_CURRENT_BINARY_DIR}/TestInput/Integration"
+)
+
+#----------------------------------------------------------------------------
+# Individual Unit Tests
+#----------------------------------------------------------------------------
+
 add_test(Test.eclendpointscaling test_eclendpointscaling)
 add_test(Test.eclproptable test_eclproptable)
 add_test(Test.eclpvtcommon test_eclpvtcommon)
 add_test(Test.eclregionmapping test_eclregionmapping)
 add_test(Test.eclsimple1dinterpolant test_eclsimple1dinterpolant)
 add_test(Test.eclunithandling test_eclunithandling)
+add_test(Test.propcurves_integration test_propcurves_integration)
