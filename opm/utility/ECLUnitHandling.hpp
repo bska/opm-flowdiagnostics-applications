@@ -28,6 +28,8 @@ namespace Opm {
 
         struct UnitSystem
         {
+            virtual ~UnitSystem() = default;
+
             virtual std::unique_ptr<UnitSystem> clone() const = 0;
 
             virtual double density()             const = 0;
