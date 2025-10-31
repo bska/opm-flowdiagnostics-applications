@@ -54,13 +54,13 @@ namespace {
             const auto& x = graph.first;
             const auto& y = graph.second;
 
-            os << name << '{' << k << "} = extendTab([\n";
+            //os << name << '{' << k << "} = extendTab([\n";
 
             for (auto n = x.size(), i = 0*n; i < n; ++i) {
                 os << x[i] << ' ' << y[i] << '\n';
             }
 
-            os << "]);\n\n";
+            //os << "]);\n\n";
             k += 1;
         }
 
@@ -100,6 +100,7 @@ namespace {
     // Relative permeability
 
     void krg(const Opm::ECLSaturationFunc&                 sfunc,
+             const Opm::ECLInitFileData&                   init,
              const int                                     activeCell,
              const Opm::ECLSaturationFunc::SatFuncScaling& scaling)
     {
@@ -115,13 +116,18 @@ namespace {
             Opm::ECLPhaseIndex::Vapour
         });
 
-        const auto graph =
-            sfunc.getSatFuncCurve(func, activeCell, scaling);
+        const auto gridID = std::string{}; // Empty => global grid.
+
+        const auto satnum = init.keywordData<int>("SATNUM", gridID)[activeCell];
+
+        const auto graph = sfunc
+            .getSatFuncCurve(func, init, gridID, activeCell, satnum, scaling);
 
         printGraph(std::cout, "crv.krg", graph);
     }
 
     void krog(const Opm::ECLSaturationFunc&                 sfunc,
+              const Opm::ECLInitFileData&                   init,
               const int                                     activeCell,
               const Opm::ECLSaturationFunc::SatFuncScaling& scaling)
     {
@@ -137,13 +143,18 @@ namespace {
             Opm::ECLPhaseIndex::Liquid
         });
 
-        const auto graph =
-            sfunc.getSatFuncCurve(func, activeCell, scaling);
+        const auto gridID = std::string{}; // Empty => global grid.
+
+        const auto satnum = init.keywordData<int>("SATNUM", gridID)[activeCell];
+
+        const auto graph = sfunc
+            .getSatFuncCurve(func, init, gridID, activeCell, satnum, scaling);
 
         printGraph(std::cout, "crv.krog", graph);
     }
 
     void krow(const Opm::ECLSaturationFunc&                 sfunc,
+              const Opm::ECLInitFileData&                   init,
               const int                                     activeCell,
               const Opm::ECLSaturationFunc::SatFuncScaling& scaling)
     {
@@ -159,13 +170,18 @@ namespace {
             Opm::ECLPhaseIndex::Liquid
         });
 
-        const auto graph =
-            sfunc.getSatFuncCurve(func, activeCell, scaling);
+        const auto gridID = std::string{}; // Empty => global grid.
+
+        const auto satnum = init.keywordData<int>("SATNUM", gridID)[activeCell];
+
+        const auto graph = sfunc
+            .getSatFuncCurve(func, init, gridID, activeCell, satnum, scaling);
 
         printGraph(std::cout, "crv.krow", graph);
     }
 
     void krw(const Opm::ECLSaturationFunc&                 sfunc,
+             const Opm::ECLInitFileData&                   init,
              const int                                     activeCell,
              const Opm::ECLSaturationFunc::SatFuncScaling& scaling)
     {
@@ -181,8 +197,12 @@ namespace {
             Opm::ECLPhaseIndex::Aqua
         });
 
-        const auto graph =
-            sfunc.getSatFuncCurve(func, activeCell, scaling);
+        const auto gridID = std::string{}; // Empty => global grid.
+
+        const auto satnum = init.keywordData<int>("SATNUM", gridID)[activeCell];
+
+        const auto graph = sfunc
+            .getSatFuncCurve(func, init, gridID, activeCell, satnum, scaling);
 
         printGraph(std::cout, "crv.krw", graph);
     }
@@ -191,6 +211,7 @@ namespace {
     // Capillary pressure
 
     void pcgo(const Opm::ECLSaturationFunc&                 sfunc,
+              const Opm::ECLInitFileData&                   init,
               const int                                     activeCell,
               const Opm::ECLSaturationFunc::SatFuncScaling& scaling)
     {
@@ -206,13 +227,18 @@ namespace {
             Opm::ECLPhaseIndex::Vapour
         });
 
-        const auto graph =
-            sfunc.getSatFuncCurve(func, activeCell, scaling);
+        const auto gridID = std::string{}; // Empty => global grid.
+
+        const auto satnum = init.keywordData<int>("SATNUM", gridID)[activeCell];
+
+        const auto graph = sfunc
+            .getSatFuncCurve(func, init, gridID, activeCell, satnum, scaling);
 
         printGraph(std::cout, "crv.pcgo", graph);
     }
 
     void pcow(const Opm::ECLSaturationFunc&                 sfunc,
+              const Opm::ECLInitFileData&                   init,
               const int                                     activeCell,
               const Opm::ECLSaturationFunc::SatFuncScaling& scaling)
     {
@@ -228,8 +254,12 @@ namespace {
             Opm::ECLPhaseIndex::Aqua
         });
 
-        const auto graph =
-            sfunc.getSatFuncCurve(func, activeCell, scaling);
+        const auto gridID = std::string{}; // Empty => global grid.
+
+        const auto satnum = init.keywordData<int>("SATNUM", gridID)[activeCell];
+
+        const auto graph = sfunc
+            .getSatFuncCurve(func, init, gridID, activeCell, satnum, scaling);
 
         printGraph(std::cout, "crv.pcow", graph);
     }
@@ -418,8 +448,8 @@ try {
 
     const auto cellID = getActiveCell(graph, prm);
 
-    auto sfunc = Opm::ECLSaturationFunc(graph, init);
-    auto pvtCC = Opm::ECLPVT::ECLPvtCurveCollection(graph, init);
+    auto sfunc = Opm::ECLSaturationFunc(init);
+    auto pvtCC = Opm::ECLPVT::ECLPvtCurveCollection(init);
 
     if (prm.has("unit")) {
         auto units = makeUnits(prm.get<std::string>("unit"), init);
@@ -433,16 +463,16 @@ try {
     // -----------------------------------------------------------------
     // Relative permeability
 
-    if (prm.getDefault("krg" , false)) { krg (sfunc, cellID, scaling); }
-    if (prm.getDefault("krog", false)) { krog(sfunc, cellID, scaling); }
-    if (prm.getDefault("krow", false)) { krow(sfunc, cellID, scaling); }
-    if (prm.getDefault("krw" , false)) { krw (sfunc, cellID, scaling); }
+    if (prm.getDefault("krg" , false)) { krg (sfunc, init, cellID, scaling); }
+    if (prm.getDefault("krog", false)) { krog(sfunc, init, cellID, scaling); }
+    if (prm.getDefault("krow", false)) { krow(sfunc, init, cellID, scaling); }
+    if (prm.getDefault("krw" , false)) { krw (sfunc, init, cellID, scaling); }
 
     // -----------------------------------------------------------------
     // Capillary pressure
     if (prm.getDefault("pcog", false) || // Alias pcog -> pcgo
-        prm.getDefault("pcgo", false)) { pcgo(sfunc, cellID, scaling); }
-    if (prm.getDefault("pcow", false)) { pcow(sfunc, cellID, scaling); }
+        prm.getDefault("pcgo", false)) { pcgo(sfunc, init, cellID, scaling); }
+    if (prm.getDefault("pcow", false)) { pcow(sfunc, init, cellID, scaling); }
 
     // -----------------------------------------------------------------
     // PVT Curves

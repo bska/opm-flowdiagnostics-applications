@@ -56,8 +56,7 @@ namespace Opm { namespace ECLPVT {
         ///
         /// \param[in] init Container of tabulated PVT functions for all PVT
         ///    regions in the model \p G.
-        ECLPvtCurveCollection(const ECLGraph&        G,
-                              const ECLInitFileData& init);
+        ECLPvtCurveCollection(const ECLInitFileData& init);
 
         /// Define a collection of units of measure for output purposes.
         ///

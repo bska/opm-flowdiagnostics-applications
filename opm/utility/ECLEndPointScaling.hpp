@@ -655,6 +655,14 @@ namespace Opm { namespace SatFunc {
                           const EPSOptions&        opt,
                           const RawTableEndPoints& tep);
 
+            static std::unique_ptr<EPSEvalInterface>
+            fromECLOutput(const ECLInitFileData&   init,
+                          const std::string&       gridID,
+                          const std::size_t        activeCell,
+                          const int                satnum,
+                          const EPSOptions&        opt,
+                          const RawTableEndPoints& tep);
+
             /// Extract table end points relevant to a particular horizontal
             /// EPS evaluator from raw tabulated saturation functions.
             ///
@@ -718,6 +726,15 @@ namespace Opm { namespace SatFunc {
                           const RawTableEndPoints& tep,
                           const FuncValVector&     fvals);
 
+            static std::unique_ptr<VerticalScalingInterface>
+            fromECLOutput(const ECLInitFileData&                          init,
+                          const std::string&                              gridID,
+                          const std::size_t                               activeCell,
+                          const int                                       satnum,
+                          const EPSOptions&                               opt,
+                          const RawTableEndPoints&                        tep,
+                          const VerticalScalingInterface::FunctionValues& fvals);
+
             /// Extract table end points relevant to a particular vertical
             /// scaling evaluator from raw tabulated saturation functions.
             ///
@@ -742,6 +759,14 @@ namespace Opm { namespace SatFunc {
                                    const RawTableEndPoints& ep,
                                    const EPSOptions&        opt,
                                    const SatFuncEvaluator&  evalSF);
+
+			static VerticalScalingInterface::FunctionValues
+            unscaledFunctionValues(const ECLInitFileData&   init,
+                                   const std::string&       gridID,
+                                   const int                satnum,
+                                   const RawTableEndPoints& ep,
+                                   const EPSOptions&        opt,
+                                   const SatFuncEvaluator&  evalSF);
         };
     };
 
@@ -750,10 +775,23 @@ namespace Opm { namespace SatFunc {
                      const ECLInitFileData&              init,
                      const CreateEPS::RawTableEndPoints& tep);
 
+    double scaledConnateGas(const ECLInitFileData&              init,
+                            const std::string&                  gridID,
+                            const std::size_t                   activeCell,
+                            const int                           satnum,
+                            const CreateEPS::RawTableEndPoints& tep);
+
     std::vector<double>
     scaledConnateWater(const ECLGraph&                     G,
                        const ECLInitFileData&              init,
                        const CreateEPS::RawTableEndPoints& tep);
+
+    double scaledConnateWater(const ECLInitFileData&              init,
+                              const std::string&                  gridID,
+                              const std::size_t                   activeCell,
+                              const int                           satnum,
+                              const CreateEPS::RawTableEndPoints& tep);
+
 }} // namespace Opm::SatFunc
 
 #endif // OPM_ECLENDPOINTSCALING_HEADER_INCLUDED

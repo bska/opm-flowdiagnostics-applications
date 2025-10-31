@@ -71,8 +71,9 @@ namespace Opm
         ///    requisite data is missing.  Numerical values in SI units
         ///    (rm^3/s).
         std::vector<double>
-        flux(const ECLRestartData& rstrt,
-             const ECLPhaseIndex   phase) const;
+        flux(const ECLRestartData&  rstrt,
+             const ECLInitFileData& init,
+             const ECLPhaseIndex    phase) const;
 
         /// Retrive phase mass flux on all connections defined by \code
         /// graph.neighbours() \endcode.
@@ -86,8 +87,9 @@ namespace Opm
         ///    if requisite data is missing.  Numerical values in SI units
         ///    (kg/s).
         std::vector<double>
-        massflux(const ECLRestartData& rstrt,
-                 const ECLPhaseIndex   phase) const;
+        massflux(const ECLRestartData&  rstrt,
+                 const ECLInitFileData& init,
+                 const ECLPhaseIndex    phase) const;
 
         /// Return type for the phaseProperties() method, encapsulates
         /// dynamic properties for a single phase.
@@ -108,8 +110,9 @@ namespace Opm
         ///
         /// \return DynamicData struct containing cell-values for phase
         ///    properties.  Numerical values in SI units (kg/s).
-        DynamicData phaseProperties(const ECLRestartData& rstrt,
-                                    const ECLPhaseIndex   phase) const;
+        DynamicData phaseProperties(const ECLRestartData&  rstrt,
+                                    const ECLInitFileData& init,
+                                    const ECLPhaseIndex    phase) const;
 
         /// Retrive the constant surface density of a phase.
         ///

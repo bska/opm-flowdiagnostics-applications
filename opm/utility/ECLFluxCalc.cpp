@@ -188,7 +188,7 @@ namespace Opm
                              const double           grav,
                              const bool             /* useEPS */)
         : graph_(graph)
-        , satfunc_(graph, init)
+        , satfunc_(init)
         , rmap_(pvtnumVector(graph, init))
         , neighbours_(graph.neighbours())
         , transmissibility_(graph.transmissibility())
@@ -208,8 +208,9 @@ namespace Opm
 
 
     std::vector<double>
-    ECLFluxCalc::flux(const ECLRestartData& rstrt,
-                      const ECLPhaseIndex   phase) const
+    ECLFluxCalc::flux(const ECLRestartData&  rstrt,
+                      const ECLInitFileData& init,
+                      const ECLPhaseIndex    phase) const
     {
         if (! this->phaseIsActive(phase)) {
             // Inactive phase.  Return empty flux vector.
@@ -217,7 +218,7 @@ namespace Opm
         }
 
         // Obtain dynamic data.
-        const auto dyn_data = this->phaseProperties(rstrt, phase);
+        const auto dyn_data = this->phaseProperties(rstrt, init, phase);
 
         // Compute fluxes per connection.
         const int num_conn = transmissibility_.size();
@@ -230,8 +231,9 @@ namespace Opm
 
 
     std::vector<double>
-    ECLFluxCalc::massflux(const ECLRestartData& rstrt,
-                          const ECLPhaseIndex   phase) const
+    ECLFluxCalc::massflux(const ECLRestartData&  rstrt,
+                          const ECLInitFileData& init,
+                          const ECLPhaseIndex    phase) const
     {
         if (! this->phaseIsActive(phase)) {
             // Inactive phase.  Return empty (mass) flux vector.
@@ -239,7 +241,7 @@ namespace Opm
         }
 
         // Obtain dynamic data.
-        const auto dyn_data = this->phaseProperties(rstrt, phase);
+        const auto dyn_data = this->phaseProperties(rstrt, init, phase);
 
         // Compute fluxes per connection.
         const int num_conn = transmissibility_.size();
@@ -325,8 +327,9 @@ namespace Opm
 
 
     ECLFluxCalc::DynamicData
-    ECLFluxCalc::phaseProperties(const ECLRestartData& rstrt,
-                                 const ECLPhaseIndex   phase) const
+    ECLFluxCalc::phaseProperties(const ECLRestartData&  rstrt,
+                                 const ECLInitFileData& init,
+                                 const ECLPhaseIndex    phase) const
     {
         auto dyn_data = DynamicData{};
 
@@ -339,7 +342,7 @@ namespace Opm
         // Step 1 of Mobility Calculation.
         // Store phase's relative permeability values.
         dyn_data.mobility =
-            this->satfunc_.relperm(this->graph_, rstrt, phase);
+            this->satfunc_.relperm(this->graph_, init, rstrt, phase);
 
         // Step 1 of Mass Density (Reservoir Conditions) Calculation.
         // Allocate space for storing the cell values.

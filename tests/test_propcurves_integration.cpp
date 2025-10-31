@@ -58,7 +58,7 @@ namespace {
     {
         NorneSatfuncFixture()
             : NorneFixture()
-            , satFunc { G, init }
+            , satFunc {init }
         {}
 
         Opm::ECLSaturationFunc satFunc;
@@ -89,8 +89,13 @@ BOOST_AUTO_TEST_CASE(Relperm_Gas)
     auto scaling = Opm::ECLSaturationFunc::SatFuncScaling{};
     scaling.enable = static_cast<unsigned char>(0);
 
+    // Grid ID is empty string for the main grid.
+    const auto gridID = std::string{};
+    const auto activeCell = this->G.activeCell(cell_16_31_10());
+    const auto satnum = this->init.keywordData<int>("SATNUM", gridID)[activeCell];
+
     const auto graphs = this->satFunc
-        .getSatFuncCurve(curves, this->G.activeCell(cell_16_31_10()), scaling);
+        .getSatFuncCurve(curves, this->init, gridID, activeCell, satnum, scaling);
 
     BOOST_REQUIRE_EQUAL(graphs.size(), std::size_t{ 1 });
 
@@ -142,8 +147,13 @@ BOOST_AUTO_TEST_CASE(Relperm_Oil_in_Oil_Gas)
     auto scaling = Opm::ECLSaturationFunc::SatFuncScaling{};
     scaling.enable = static_cast<unsigned char>(0);
 
+    // Grid ID is empty string for the main grid.
+    const auto gridID = std::string{};
+    const auto activeCell = this->G.activeCell(cell_16_31_10());
+    const auto satnum = this->init.keywordData<int>("SATNUM", gridID)[activeCell];
+
     const auto graphs = this->satFunc
-        .getSatFuncCurve(curves, this->G.activeCell(cell_16_31_10()), scaling);
+        .getSatFuncCurve(curves, this->init, gridID, activeCell, satnum, scaling);
 
     BOOST_REQUIRE_EQUAL(graphs.size(), std::size_t{ 1 });
 
@@ -195,8 +205,13 @@ BOOST_AUTO_TEST_CASE(Relperm_Oil_in_Oil_Water)
     auto scaling = Opm::ECLSaturationFunc::SatFuncScaling{};
     scaling.enable = static_cast<unsigned char>(0);
 
+    // Grid ID is empty string for the main grid.
+    const auto gridID = std::string{};
+    const auto activeCell = this->G.activeCell(cell_16_31_10());
+    const auto satnum = this->init.keywordData<int>("SATNUM", gridID)[activeCell];
+
     const auto graphs = this->satFunc
-        .getSatFuncCurve(curves, this->G.activeCell(cell_16_31_10()), scaling);
+        .getSatFuncCurve(curves, this->init, gridID, activeCell, satnum, scaling);
 
     BOOST_REQUIRE_EQUAL(graphs.size(), std::size_t{ 1 });
 
@@ -249,8 +264,13 @@ BOOST_AUTO_TEST_CASE(Relperm_Water)
     auto scaling = Opm::ECLSaturationFunc::SatFuncScaling{};
     scaling.enable = static_cast<unsigned char>(0);
 
+    // Grid ID is empty string for the main grid.
+    const auto gridID = std::string{};
+    const auto activeCell = this->G.activeCell(cell_16_31_10());
+    const auto satnum = this->init.keywordData<int>("SATNUM", gridID)[activeCell];
+
     const auto graphs = this->satFunc
-        .getSatFuncCurve(curves, this->G.activeCell(cell_16_31_10()), scaling);
+        .getSatFuncCurve(curves, this->init, gridID, activeCell, satnum, scaling);
 
     BOOST_REQUIRE_EQUAL(graphs.size(), std::size_t{ 1 });
 
@@ -302,8 +322,13 @@ BOOST_AUTO_TEST_CASE(CapPress_Gas_Oil)
     auto scaling = Opm::ECLSaturationFunc::SatFuncScaling{};
     scaling.enable = static_cast<unsigned char>(0);
 
+    // Grid ID is empty string for the main grid.
+    const auto gridID = std::string{};
+    const auto activeCell = this->G.activeCell(cell_16_31_10());
+    const auto satnum = this->init.keywordData<int>("SATNUM", gridID)[activeCell];
+
     const auto graphs = this->satFunc
-        .getSatFuncCurve(curves, this->G.activeCell(cell_16_31_10()), scaling);
+        .getSatFuncCurve(curves, this->init, gridID, activeCell, satnum, scaling);
 
     BOOST_REQUIRE_EQUAL(graphs.size(), std::size_t{ 1 });
 
@@ -355,8 +380,13 @@ BOOST_AUTO_TEST_CASE(CapPress_Oil_Water)
     auto scaling = Opm::ECLSaturationFunc::SatFuncScaling{};
     scaling.enable = static_cast<unsigned char>(0);
 
+    // Grid ID is empty string for the main grid.
+    const auto gridID = std::string{};
+    const auto activeCell = this->G.activeCell(cell_16_31_10());
+    const auto satnum = this->init.keywordData<int>("SATNUM", gridID)[activeCell];
+
     const auto graphs = this->satFunc
-        .getSatFuncCurve(curves, this->G.activeCell(cell_16_31_10()), scaling);
+        .getSatFuncCurve(curves, this->init, gridID, activeCell, satnum, scaling);
 
     BOOST_REQUIRE_EQUAL(graphs.size(), std::size_t{ 1 });
 
@@ -415,8 +445,13 @@ BOOST_AUTO_TEST_CASE(Relperm_Gas)
     // Default scaling mode is horizontal + vertical.
     const auto scaling = Opm::ECLSaturationFunc::SatFuncScaling{};
 
+    // Grid ID is empty string for the main grid.
+    const auto gridID = std::string{};
+    const auto activeCell = this->G.activeCell(cell_16_31_10());
+    const auto satnum = this->init.keywordData<int>("SATNUM", gridID)[activeCell];
+
     const auto graphs = this->satFunc
-        .getSatFuncCurve(curves, this->G.activeCell(cell_16_31_10()), scaling);
+        .getSatFuncCurve(curves, this->init, gridID, activeCell, satnum, scaling);
 
     BOOST_REQUIRE_EQUAL(graphs.size(), std::size_t{ 1 });
 
@@ -487,8 +522,13 @@ BOOST_AUTO_TEST_CASE(Relperm_Oil_in_Oil_Gas)
     // Default scaling mode is horizontal + vertical.
     const auto scaling = Opm::ECLSaturationFunc::SatFuncScaling{};
 
+    // Grid ID is empty string for the main grid.
+    const auto gridID = std::string{};
+    const auto activeCell = this->G.activeCell(cell_16_31_10());
+    const auto satnum = this->init.keywordData<int>("SATNUM", gridID)[activeCell];
+
     const auto graphs = this->satFunc
-        .getSatFuncCurve(curves, this->G.activeCell(cell_16_31_10()), scaling);
+        .getSatFuncCurve(curves, this->init, gridID, activeCell, satnum, scaling);
 
     BOOST_REQUIRE_EQUAL(graphs.size(), std::size_t{ 1 });
 
@@ -559,8 +599,13 @@ BOOST_AUTO_TEST_CASE(Relperm_Oil_in_Oil_Water)
     // Default scaling mode is horizontal + vertical
     const auto scaling = Opm::ECLSaturationFunc::SatFuncScaling{};
 
+    // Grid ID is empty string for the main grid.
+    const auto gridID = std::string{};
+    const auto activeCell = this->G.activeCell(cell_16_31_10());
+    const auto satnum = this->init.keywordData<int>("SATNUM", gridID)[activeCell];
+
     const auto graphs = this->satFunc
-        .getSatFuncCurve(curves, this->G.activeCell(cell_16_31_10()), scaling);
+        .getSatFuncCurve(curves, this->init, gridID, activeCell, satnum, scaling);
 
     BOOST_REQUIRE_EQUAL(graphs.size(), std::size_t{ 1 });
 
@@ -632,8 +677,13 @@ BOOST_AUTO_TEST_CASE(Relperm_Water)
     // Default scaling mode is horizontal + vertical.
     const auto scaling = Opm::ECLSaturationFunc::SatFuncScaling{};
 
+    // Grid ID is empty string for the main grid.
+    const auto gridID = std::string{};
+    const auto activeCell = this->G.activeCell(cell_16_31_10());
+    const auto satnum = this->init.keywordData<int>("SATNUM", gridID)[activeCell];
+
     const auto graphs = this->satFunc
-        .getSatFuncCurve(curves, this->G.activeCell(cell_16_31_10()), scaling);
+        .getSatFuncCurve(curves, this->init, gridID, activeCell, satnum, scaling);
 
     BOOST_REQUIRE_EQUAL(graphs.size(), std::size_t{ 1 });
 
@@ -703,8 +753,13 @@ BOOST_AUTO_TEST_CASE(CapPress_Gas_Oil)
     // Default scaling mode is horizontal + vertical.
     const auto scaling = Opm::ECLSaturationFunc::SatFuncScaling{};
 
+    // Grid ID is empty string for the main grid.
+    const auto gridID = std::string{};
+    const auto activeCell = this->G.activeCell(cell_16_31_10());
+    const auto satnum = this->init.keywordData<int>("SATNUM", gridID)[activeCell];
+
     const auto graphs = this->satFunc
-        .getSatFuncCurve(curves, this->G.activeCell(cell_16_31_10()), scaling);
+        .getSatFuncCurve(curves, this->init, gridID, activeCell, satnum, scaling);
 
     BOOST_REQUIRE_EQUAL(graphs.size(), std::size_t{ 1 });
 
@@ -775,8 +830,13 @@ BOOST_AUTO_TEST_CASE(CapPress_Oil_Water)
     // Default scaling mode is horizontal + vertical.
     const auto scaling = Opm::ECLSaturationFunc::SatFuncScaling{};
 
+    // Grid ID is empty string for the main grid.
+    const auto gridID = std::string{};
+    const auto activeCell = this->G.activeCell(cell_16_31_10());
+    const auto satnum = this->init.keywordData<int>("SATNUM", gridID)[activeCell];
+
     const auto graphs = this->satFunc
-        .getSatFuncCurve(curves, this->G.activeCell(cell_16_31_10()), scaling);
+        .getSatFuncCurve(curves, this->init, gridID, activeCell, satnum, scaling);
 
     BOOST_REQUIRE_EQUAL(graphs.size(), std::size_t{ 1 });
 

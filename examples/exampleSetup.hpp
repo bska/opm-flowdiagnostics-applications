@@ -90,10 +90,10 @@ namespace example {
 
             Opm::ECLFluxCalc calc(G, init, grav, useEPS);
 
-            return extractFluxField(G, [&calc, &rstrt]
+            return extractFluxField(G, [&calc, &init, &rstrt]
                 (const Opm::ECLPhaseIndex p)
             {
-                return calc.flux(rstrt, p);
+                return calc.flux(rstrt, init, p);
             });
         }
 
