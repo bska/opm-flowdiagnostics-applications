@@ -2474,12 +2474,18 @@ pcowCurve(const ECLInitFileData& init,
     auto pc = this->wat_->pcow(satnum - 1, sw_lookup);
 
     if (enableVerticalSFScaling(scaling)) {
-        const auto fvals = SatFunc::CreateEPS::Vertical::
+        auto fvals = SatFunc::CreateEPS::Vertical::
             unscaledFunctionValues(init, gridID, satnum, *this->tep_, opt,
                 [this](const int satreg, const double s)
             {
                 return this->wat_->pcow(satreg, std::vector<double>{s}).front();
             });
+
+        // Special case treatment of PCOW.  Maximum function value at
+        // minimum Sw (here known as "disp").
+        if (fvals.disp.val > fvals.max.val) {
+            fvals.max = fvals.disp;
+        }
 
         auto eps = SatFunc::CreateEPS::Vertical::
             fromECLOutput(init, gridID, activeCell, satnum,
