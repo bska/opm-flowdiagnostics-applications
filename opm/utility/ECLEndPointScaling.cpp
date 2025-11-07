@@ -39,6 +39,8 @@
 #include <limits>
 #include <numeric>
 #include <stdexcept>
+#include <string>
+#include <type_traits>
 #include <utility>
 #include <vector>
 
@@ -99,6 +101,24 @@ namespace {
         {
             return init.haveKeywordData(vector, gridID);
         });
+    }
+
+    std::string arrayName(const ::Opm::SatFunc::CreateEPS::EPSOptions& opt,
+                          const std::string&                           baseName)
+    {
+        assert((opt.curveSet == Opm::SatFunc::CreateEPS::CurveSet::Drainage) ||
+               (opt.curveSet == Opm::SatFunc::CreateEPS::CurveSet::Imbibition));
+
+        if (opt.curveSet == Opm::SatFunc::CreateEPS::CurveSet::Drainage) {
+            return baseName;
+        }
+        else if (opt.curveSet == Opm::SatFunc::CreateEPS::CurveSet::Imbibition) {
+            return "I" + baseName;
+        }
+
+        throw std::invalid_argument {
+            "Unknown curve set " + std::to_string(static_cast<std::underlying_type_t<Opm::SatFunc::CreateEPS::CurveSet>>(opt.curveSet))
+        };
     }
 
     template <class CvrtVal>
@@ -192,11 +212,14 @@ namespace {
                   const std::string&                                  gridID,
                   const std::size_t                                   activeCell,
                   const int                                           satnum,
+                  const ::Opm::SatFunc::CreateEPS::EPSOptions&        opt,
                   const ::Opm::SatFunc::CreateEPS::RawTableEndPoints& tep)
-	{
-		return arrayValue(init, gridID, activeCell, "SGCR",
-			tep.crit.gas[satnum - 1], [](const double s) {return s; });
-	}
+    {
+        return arrayValue(init, gridID, activeCell,
+                          arrayName(opt, "SGCR"),
+                          tep.crit.gas[satnum - 1],
+                          [](const double s) {return s; });
+    }
 
     std::vector<double>
     sogCrit(const ::Opm::ECLGraph&                              G,
@@ -211,11 +234,14 @@ namespace {
                    const std::string&                                  gridID,
                    const std::size_t                                   activeCell,
                    const int                                           satnum,
+                   const ::Opm::SatFunc::CreateEPS::EPSOptions&        opt,
                    const ::Opm::SatFunc::CreateEPS::RawTableEndPoints& tep)
-	{
-		return arrayValue(init, gridID, activeCell, "SOGCR",
-			tep.crit.oil_in_gas[satnum - 1], [](const double s) {return s; });
-	}
+    {
+        return arrayValue(init, gridID, activeCell,
+                          arrayName(opt, "SOGCR"),
+                          tep.crit.oil_in_gas[satnum - 1],
+                          [](const double s) { return s; });
+    }
 
     std::vector<double>
     sowCrit(const ::Opm::ECLGraph&                              G,
@@ -230,11 +256,14 @@ namespace {
                    const std::string&                                  gridID,
                    const std::size_t                                   activeCell,
                    const int                                           satnum,
+                   const ::Opm::SatFunc::CreateEPS::EPSOptions&        opt,
                    const ::Opm::SatFunc::CreateEPS::RawTableEndPoints& tep)
-	{
-		return arrayValue(init, gridID, activeCell, "SOWCR",
-			tep.crit.oil_in_water[satnum - 1], [](const double s) {return s; });
-	}
+    {
+        return arrayValue(init, gridID, activeCell,
+                          arrayName(opt, "SOWCR"),
+                          tep.crit.oil_in_water[satnum - 1],
+                          [](const double s) { return s; });
+    }
 
     std::vector<double>
     swCrit(const ::Opm::ECLGraph&                              G,
@@ -249,11 +278,14 @@ namespace {
                   const std::string&                                  gridID,
                   const std::size_t                                   activeCell,
                   const int                                           satnum,
+                  const ::Opm::SatFunc::CreateEPS::EPSOptions&        opt,
                   const ::Opm::SatFunc::CreateEPS::RawTableEndPoints& tep)
-	{
-		return arrayValue(init, gridID, activeCell, "SWCR",
-			tep.crit.water[satnum - 1], [](const double s) {return s; });
-	}
+    {
+        return arrayValue(init, gridID, activeCell,
+                          arrayName(opt, "SWCR"),
+                          tep.crit.water[satnum - 1],
+                          [](const double s) { return s; });
+    }
 
     std::vector<double>
     sgMax(const ::Opm::ECLGraph&                              G,
@@ -268,10 +300,13 @@ namespace {
                  const std::string&                                  gridID,
                  const std::size_t                                   activeCell,
                  const int                                           satnum,
+                 const ::Opm::SatFunc::CreateEPS::EPSOptions&        opt,
                  const ::Opm::SatFunc::CreateEPS::RawTableEndPoints& tep)
     {
-    	return arrayValue(init, gridID, activeCell, "SGU",
-    		tep.smax.gas[satnum - 1], [](const double s) {return s; });
+        return arrayValue(init, gridID, activeCell,
+                          arrayName(opt, "SGU"),
+                          tep.smax.gas[satnum - 1],
+                          [](const double s) { return s; });
     }
 
     std::vector<double>
@@ -298,13 +333,17 @@ namespace {
                  const std::string&                                  gridID,
                  const std::size_t                                   activeCell,
                  const int                                           satnum,
+                 const ::Opm::SatFunc::CreateEPS::EPSOptions&        opt,
                  const ::Opm::SatFunc::CreateEPS::RawTableEndPoints& tep)
-	{
-		const auto sgl = ::Opm::SatFunc::scaledConnateGas(init, gridID, activeCell, satnum, tep);
-		const auto swl = ::Opm::SatFunc::scaledConnateWater(init, gridID, activeCell, satnum, tep);
+    {
+        const auto sgl = ::Opm::SatFunc::
+            scaledConnateGas(init, gridID, activeCell, satnum, opt, tep);
 
-		return 1.0 - (sgl + swl);
-	}
+        const auto swl = ::Opm::SatFunc::
+            scaledConnateWater(init, gridID, activeCell, satnum, opt, tep);
+
+        return 1.0 - (sgl + swl);
+    }
 
     std::vector<double>
     swMax(const ::Opm::ECLGraph&                              G,
@@ -319,11 +358,14 @@ namespace {
                  const std::string&                                  gridID,
                  const std::size_t                                   activeCell,
                  const int                                           satnum,
+                 const ::Opm::SatFunc::CreateEPS::EPSOptions&        opt,
                  const ::Opm::SatFunc::CreateEPS::RawTableEndPoints& tep)
-	{
-		return arrayValue(init, gridID, activeCell, "SWU",
-			tep.smax.water[satnum - 1], [](const double s) {return s; });
-	}
+    {
+        return arrayValue(init, gridID, activeCell,
+                          arrayName(opt, "SWU"),
+                          tep.smax.water[satnum - 1],
+                          [](const double s) { return s; });
+    }
 
     double defaultedScaledSaturation(const double s, const double dflt)
     {
@@ -356,25 +398,25 @@ namespace {
         return false;
     }
 
-	bool haveScaledRelPermAtCritSat(const ::Opm::ECLInitFileData&                init,
-	                                const std::string&                           gridID,
-	                                const ::Opm::SatFunc::CreateEPS::EPSOptions& opt)
-	{
-		switch (opt.thisPh) {
-		case ::Opm::ECLPhaseIndex::Aqua:
-			return init.haveKeywordData("KRWR", gridID);
+    bool haveScaledRelPermAtCritSat(const ::Opm::ECLInitFileData&                init,
+                                    const std::string&                           gridID,
+                                    const ::Opm::SatFunc::CreateEPS::EPSOptions& opt)
+    {
+        switch (opt.thisPh) {
+        case ::Opm::ECLPhaseIndex::Aqua:
+            return init.haveKeywordData(arrayName(opt, "KRWR"), gridID);
 
-		case ::Opm::ECLPhaseIndex::Liquid:
-			return (opt.subSys == ::Opm::SatFunc::CreateEPS::SubSystem::OilGas)
-				? init.haveKeywordData("KRORG", gridID)
-				: init.haveKeywordData("KRORW", gridID);
+        case ::Opm::ECLPhaseIndex::Liquid:
+            return (opt.subSys == ::Opm::SatFunc::CreateEPS::SubSystem::OilGas)
+                ? init.haveKeywordData(arrayName(opt, "KRORG"), gridID)
+                : init.haveKeywordData(arrayName(opt, "KRORW"), gridID);
 
-		case ::Opm::ECLPhaseIndex::Vapour:
-			return init.haveKeywordData("KRGR", gridID);
-		}
+        case ::Opm::ECLPhaseIndex::Vapour:
+            return init.haveKeywordData(arrayName(opt, "KRGR"), gridID);
+        }
 
-		return false;
-	}
+        return false;
+    }
 }
 
 // ---------------------------------------------------------------------
@@ -889,24 +931,28 @@ namespace Create {
                             const std::string&            gridID,
                             const std::size_t             activeCell,
                             const int                     satnum,
+                            const EPSOpt&                 opt,
                             const RTEP&                   tep);
             
             static EPSPtr OG(const ::Opm::ECLInitFileData& init,
                              const std::string&            gridID,
                              const std::size_t             activeCell,
                              const int                     satnum,
+                             const EPSOpt&                 opt,
                              const RTEP&                   tep);
             
             static EPSPtr OW(const ::Opm::ECLInitFileData& init,
                              const std::string&            gridID,
                              const std::size_t             activeCell,
                              const int                     satnum,
+                             const EPSOpt&                 opt,
                              const RTEP&                   tep);
             
             static EPSPtr W(const ::Opm::ECLInitFileData& init,
                             const std::string&            gridID,
                             const std::size_t             activeCell,
                             const int                     satnum,
+                            const EPSOpt&                 opt,
                             const RTEP&                   tep);
         };
 
@@ -921,6 +967,7 @@ namespace Create {
                const std::string&            gridID,
                const std::size_t             activeCell,
                const int                     satnum,
+               const EPSOpt&                 opt,
                const RTEP&                   tep);
 
             static EPSPtr
@@ -933,6 +980,7 @@ namespace Create {
                const std::string&            gridID,
                const std::size_t             activeCell,
                const int                     satnum,
+               const EPSOpt&                 opt,
                const RTEP&                   tep);
         };
 
@@ -969,6 +1017,7 @@ namespace Create {
               const std::string&            gridID,
               const std::size_t             activeCell,
               const int                     satnum,
+              const EPSOpt&                 opt,
               const RTEP&                   tep);
 
             static EPSPtr
@@ -981,6 +1030,7 @@ namespace Create {
                const std::string&            gridID,
                const std::size_t             activeCell,
                const int                     satnum,
+               const EPSOpt&                 opt,
                const RTEP&                   tep);
 
             static EPSPtr
@@ -993,6 +1043,7 @@ namespace Create {
                const std::string&            gridID,
                const std::size_t             activeCell,
                const int                     satnum,
+               const EPSOpt&                 opt,
                const RTEP&                   tep);
 
             static EPSPtr
@@ -1005,6 +1056,7 @@ namespace Create {
               const std::string&            gridID,
               const std::size_t             activeCell,
               const int                     satnum,
+              const EPSOpt&                 opt,
               const RTEP&                   tep);
         };
 
@@ -1040,7 +1092,8 @@ namespace Create {
               const std::vector<double>&    dflt);
 
             static ScalPtr
-            G(const ::Opm::ECLInitFileData& init,
+            G(const EPSOpt&                 opt,
+              const ::Opm::ECLInitFileData& init,
               const std::string&            gridID,
               const std::size_t             activeCell,
               const double                  dflt);
@@ -1051,7 +1104,8 @@ namespace Create {
               const std::vector<double>&    dflt);
 
             static ScalPtr
-            O(const ::Opm::ECLInitFileData& init,
+            O(const EPSOpt&                 opt,
+              const ::Opm::ECLInitFileData& init,
               const std::string&            gridID,
               const std::size_t             activeCell,
               const double                  dflt);
@@ -1062,7 +1116,8 @@ namespace Create {
               const std::vector<double>&    dflt);
 
             static ScalPtr
-            W(const ::Opm::ECLInitFileData& init,
+            W(const EPSOpt&                 opt,
+              const ::Opm::ECLInitFileData& init,
               const std::string&            gridID,
               const std::size_t             activeCell,
               const double                  dflt);
@@ -1075,7 +1130,8 @@ namespace Create {
                const std::vector<double>&    dflt);
 
             static ScalPtr
-            GO(const ::Opm::ECLInitFileData& init,
+            GO(const EPSOpt&                 opt,
+               const ::Opm::ECLInitFileData& init,
                const std::string&            gridID,
                const std::size_t             activeCell,
                const double                  dflt);
@@ -1086,7 +1142,8 @@ namespace Create {
                const std::vector<double>&    dflt);
 
             static ScalPtr
-            OW(const ::Opm::ECLInitFileData& init,
+            OW(const EPSOpt&                 opt,
+               const ::Opm::ECLInitFileData& init,
                const std::string&            gridID,
                const std::size_t             activeCell,
                const double                  dflt);
@@ -1132,6 +1189,7 @@ namespace Create {
                                const std::string&            gridID,
                                const std::size_t             activeCell,
                                const int                     satnum,
+                               const EPSOpt&                 opt,
                                const RTEP&                   tep,
                                const bool                    activeOil);
 
@@ -1140,6 +1198,7 @@ namespace Create {
                                 const std::string&            gridID,
                                 const std::size_t             activeCell,
                                 const int                     satnum,
+                                const EPSOpt&                 opt,
                                 const RTEP&                   rtep,
                                 const bool                    activeOil);
             };
@@ -1160,6 +1219,7 @@ namespace Create {
                                const std::string&            gridID,
                                const std::size_t             activeCell,
                                const int                     satnum,
+                               const EPSOpt&                 opt,
                                const RTEP&                   tep);
 
                 static double
@@ -1167,6 +1227,7 @@ namespace Create {
                                 const std::string&            gridID,
                                 const std::size_t             activeCell,
                                 const int                     satnum,
+                                const EPSOpt&                 opt,
                                 const RTEP&                   tep);
             };
 
@@ -1186,6 +1247,7 @@ namespace Create {
                                const std::string&            gridID,
                                const std::size_t             activeCell,
                                const int                     satnum,
+                               const EPSOpt&                 opt,
                                const RTEP&                   tep);
 
                 static double
@@ -1193,6 +1255,7 @@ namespace Create {
                                 const std::string&            gridID,
                                 const std::size_t             activeCell,
                                 const int                     satnum,
+                                const EPSOpt&                 opt,
                                 const RTEP&                   tep);
             };
 
@@ -1214,6 +1277,7 @@ namespace Create {
                                const std::string&            gridID,
                                const std::size_t             activeCell,
                                const int                     satnum,
+                               const EPSOpt&                 opt,
                                const RTEP&                   tep,
                                const bool                    activeOil);
 
@@ -1222,6 +1286,7 @@ namespace Create {
                                 const std::string&            gridID,
                                 const std::size_t             activeCell,
                                 const int                     satnum,
+                                const EPSOpt&                 opt,
                                 const RTEP&                   tep,
                                 const bool                    activeOil);
             };
@@ -1249,7 +1314,8 @@ namespace Create {
               const FValVec&                fval);
 
             static ScalPtr
-            G(const ::Opm::ECLInitFileData& init,
+            G(const EPSOpt&                 opt,
+              const ::Opm::ECLInitFileData& init,
               const std::string&            gridID,
               const std::size_t             activeCell,
               const double                  scr,
@@ -1264,7 +1330,8 @@ namespace Create {
                const FValVec&                fval);
 
             static ScalPtr
-            GO(const ::Opm::ECLInitFileData& init,
+            GO(const EPSOpt&                 opt,
+               const ::Opm::ECLInitFileData& init,
                const std::string&            gridID,
                const std::size_t             activeCell,
                const double                  scr,
@@ -1279,7 +1346,8 @@ namespace Create {
                const FValVec&                fval);
 
             static ScalPtr
-            OW(const ::Opm::ECLInitFileData& init,
+            OW(const EPSOpt&                 opt,
+               const ::Opm::ECLInitFileData& init,
                const std::string&            gridID,
                const std::size_t             activeCell,
                const double                  scr,
@@ -1294,7 +1362,8 @@ namespace Create {
               const FValVec&                fval);
 
             static ScalPtr
-            W(const ::Opm::ECLInitFileData& init,
+            W(const EPSOpt&                 opt,
+              const ::Opm::ECLInitFileData& init,
               const std::string&            gridID,
               const std::size_t             activeCell,
               const double                  scr,
@@ -1411,12 +1480,13 @@ Create::TwoPoint::Kr::G(const ::Opm::ECLInitFileData& init,
                         const std::string&            gridID,
                         const std::size_t             activeCell,
                         const int                     satnum,
+                        const EPSOpt&                 opt,
                         const RTEP&                   tep)
 {
-	const auto sgcr = sgCrit(init, gridID, activeCell, satnum, tep);
-	const auto sgu = sgMax(init, gridID, activeCell, satnum, tep);
+    const auto sgcr = sgCrit(init, gridID, activeCell, satnum, opt, tep);
+    const auto sgu  = sgMax (init, gridID, activeCell, satnum, opt, tep);
 
-	return std::make_unique<EPS>(std::vector<double>{ sgcr }, std::vector<double>{ sgu });
+    return std::make_unique<EPS>(std::vector<double>{ sgcr }, std::vector<double>{ sgu });
 }
 
 Create::TwoPoint::EPSPtr
@@ -1424,25 +1494,27 @@ Create::TwoPoint::Kr::OG(const ::Opm::ECLInitFileData& init,
                          const std::string&            gridID,
                          const std::size_t             activeCell,
                          const int                     satnum,
+                         const EPSOpt&                 opt,
                          const RTEP&                   tep)
 {
-	const auto sogcr = sogCrit(init, gridID, activeCell, satnum, tep);
-	const auto smax = soMax(init, gridID, activeCell, satnum, tep);
+    const auto sogcr = sogCrit(init, gridID, activeCell, satnum, opt, tep);
+    const auto smax  = soMax  (init, gridID, activeCell, satnum, opt, tep);
 
-	return std::make_unique<EPS>(std::vector<double>{ sogcr }, std::vector<double>{ smax });
+    return std::make_unique<EPS>(std::vector<double>{ sogcr }, std::vector<double>{ smax });
 }
 
 Create::TwoPoint::EPSPtr
 Create::TwoPoint::Kr::OW(const ::Opm::ECLInitFileData& init,
-                         const std::string& gridID,
-                         const std::size_t activeCell,
-                         const int satnum,
-                         const RTEP& tep)
+                         const std::string&            gridID,
+                         const std::size_t             activeCell,
+                         const int                     satnum,
+                         const EPSOpt&                 opt,
+                         const RTEP&                   tep)
 {
-	const auto sowcr = sowCrit(init, gridID, activeCell, satnum, tep);
-	const auto smax = soMax(init, gridID, activeCell, satnum, tep);
+    const auto sowcr = sowCrit(init, gridID, activeCell, satnum, opt, tep);
+    const auto smax  = soMax  (init, gridID, activeCell, satnum, opt, tep);
 
-	return std::make_unique<EPS>(std::vector<double>{ sowcr }, std::vector<double>{ smax });
+    return std::make_unique<EPS>(std::vector<double>{ sowcr }, std::vector<double>{ smax });
 }
 
 Create::TwoPoint::EPSPtr
@@ -1450,12 +1522,13 @@ Create::TwoPoint::Kr::W(const ::Opm::ECLInitFileData& init,
                         const std::string&            gridID,
                         const std::size_t             activeCell,
                         const int                     satnum,
+                        const EPSOpt&                 opt,
                         const RTEP&                   tep)
 {
-	const auto swcr = swCrit(init, gridID, activeCell, satnum, tep);
-	const auto swu = swMax(init, gridID, activeCell, satnum, tep);
+    const auto swcr = swCrit(init, gridID, activeCell, satnum, opt, tep);
+    const auto swu  = swMax (init, gridID, activeCell, satnum, opt, tep);
 
-	return std::make_unique<EPS>(std::vector<double>{ swcr }, std::vector<double>{ swu });
+    return std::make_unique<EPS>(std::vector<double>{ swcr }, std::vector<double>{ swu });
 }
 
 Create::TwoPoint::EPSPtr
@@ -1494,16 +1567,21 @@ Create::TwoPoint::Pc::GO(const::Opm::ECLInitFileData& init,
                          const std::string&           gridID,
                          const std::size_t            activeCell,
                          const int                    satnum,
+                         const EPSOpt&                opt,
                          const RTEP&                  tep)
 {
-	const auto sgl = init.haveKeywordData("SGLPC")
-		? arrayValue(init, gridID, activeCell, "SGLPC",
-			tep.conn.gas[satnum - 1], [](const double s) {return s; })
-		: ::Opm::SatFunc::scaledConnateGas(init, gridID, activeCell, satnum, tep);
+    const auto sglpc = arrayName(opt, "SGLPC");
 
-	const auto sgu = sgMax(init, gridID, activeCell, satnum, tep);
+    const auto sgl = init.haveKeywordData(sglpc)
+        ? arrayValue(init, gridID, activeCell, sglpc,
+                     tep.conn.gas[satnum - 1],
+                     [](const double s) { return s; })
+        : ::Opm::SatFunc::scaledConnateGas(init, gridID, activeCell,
+                                           satnum, opt, tep);
 
-	return std::make_unique<EPS>(std::vector<double>{sgl}, std::vector<double>{sgu});
+    const auto sgu = sgMax(init, gridID, activeCell, satnum, opt, tep);
+
+    return std::make_unique<EPS>(std::vector<double>{sgl}, std::vector<double>{sgu});
 }
 
 Create::TwoPoint::EPSPtr
@@ -1542,16 +1620,21 @@ Create::TwoPoint::Pc::OW(const::Opm::ECLInitFileData& init,
                          const std::string&           gridID,
                          const std::size_t            activeCell,
                          const int                    satnum,
+                         const EPSOpt&                opt,
                          const RTEP&                  tep)
 {
-	const auto swl = init.haveKeywordData("SWLPC")
-		? arrayValue(init, gridID, activeCell, "SWLPC",
-			tep.conn.water[satnum - 1], [](const double s) {return s; })
-		: ::Opm::SatFunc::scaledConnateWater(init, gridID, activeCell, satnum, tep);
+    const auto swlpc = arrayName(opt, "SWLPC");
 
-	const auto swu = swMax(init, gridID, activeCell, satnum, tep);
+    const auto swl = init.haveKeywordData(swlpc)
+        ? arrayValue(init, gridID, activeCell, swlpc,
+                     tep.conn.water[satnum - 1],
+                     [](const double s) { return s; })
+        : ::Opm::SatFunc::scaledConnateWater(init, gridID, activeCell,
+                                             satnum, opt, tep);
 
-	return std::make_unique<EPS>(std::vector<double>{swl}, std::vector<double>{swu});
+    const auto swu = swMax(init, gridID, activeCell, satnum, opt, tep);
+
+    return std::make_unique<EPS>(std::vector<double>{swl}, std::vector<double>{swu});
 }
 
 Create::TwoPoint::EPSPtr
@@ -1630,64 +1713,70 @@ scalingFunction(const ::Opm::ECLInitFileData& init,
                 const EPSOpt&                 opt,
                 const RTEP&                   tep)
 {
-	using FCat = ::Opm::SatFunc::CreateEPS::FunctionCategory;
-	using SSys = ::Opm::SatFunc::CreateEPS::SubSystem;
-	using PhIdx = ::Opm::ECLPhaseIndex;
+    using FCat = ::Opm::SatFunc::CreateEPS::FunctionCategory;
+    using SSys = ::Opm::SatFunc::CreateEPS::SubSystem;
+    using PhIdx = ::Opm::ECLPhaseIndex;
 
-	assert(((!opt.use3PtScaling) || (opt.curve == FCat::CapPress))
-		&& "Internal Error Selecting EPS Family");
+    assert((!opt.use3PtScaling || (opt.curve == FCat::CapPress))
+        && "Internal Error Selecting EPS Family");
 
-	if (opt.curve == FCat::Relperm) {
-		if (opt.subSys == SSys::OilWater) {
-			if (opt.thisPh == PhIdx::Vapour) {
-				throw std::invalid_argument{
-					"Cannot Create an EPS for Gas Relperm "
-					"in an Oil/Water System"
-				};
-			}
+    if (opt.curve == FCat::Relperm) {
+        if (opt.subSys == SSys::OilWater) {
+            if (opt.thisPh == PhIdx::Vapour) {
+                throw std::invalid_argument{
+                    "Cannot Create an EPS for Gas Relperm "
+                    "in an Oil/Water System"
+                };
+            }
 
-			if (opt.thisPh == PhIdx::Aqua) {
-				return Create::TwoPoint::Kr::W(init, gridID, activeCell, satnum, tep);
-			}
+            if (opt.thisPh == PhIdx::Aqua) {
+                return Create::TwoPoint::
+                    Kr::W(init, gridID, activeCell, satnum, opt, tep);
+            }
 
-			return Create::TwoPoint::Kr::OW(init, gridID, activeCell, satnum, tep);
-		}
+            return Create::TwoPoint::
+                Kr::OW(init, gridID, activeCell, satnum, opt, tep);
+        }
 
-		if (opt.subSys == SSys::OilGas) {
-			if (opt.thisPh == PhIdx::Aqua) {
-				throw std::invalid_argument{
-					"Cannot Create an EPS for Water Relperm "
-					"in an Oil/Gas System"
-				};
-			}
+        if (opt.subSys == SSys::OilGas) {
+            if (opt.thisPh == PhIdx::Aqua) {
+                throw std::invalid_argument{
+                    "Cannot Create an EPS for Water Relperm "
+                    "in an Oil/Gas System"
+                };
+            }
 
-			if (opt.thisPh == PhIdx::Vapour) {
-				return Create::TwoPoint::Kr::G(init, gridID, activeCell, satnum, tep);
-			}
+            if (opt.thisPh == PhIdx::Vapour) {
+                return Create::TwoPoint::
+                    Kr::G(init, gridID, activeCell, satnum, opt, tep);
+            }
 
-			return Create::TwoPoint::Kr::OG(init, gridID, activeCell, satnum, tep);
-		}
-	}
+            return Create::TwoPoint::
+                Kr::OG(init, gridID, activeCell, satnum, opt, tep);
+        }
+    }
 
-	if (opt.curve == FCat::CapPress) {
-		if (opt.thisPh == PhIdx::Liquid) {
-			throw std::invalid_argument{
-				"Creating Capillary Pressure EPS as a Function "
-				"of Oil Saturation is not Supported"
-			};
-		}
+    if (opt.curve == FCat::CapPress) {
+        if (opt.thisPh == PhIdx::Liquid) {
+            throw std::invalid_argument{
+                "Creating Capillary Pressure EPS as a Function "
+                "of Oil Saturation is not Supported"
+            };
+        }
 
-		if (opt.thisPh == PhIdx::Vapour) {
-			return Create::TwoPoint::Pc::GO(init, gridID, activeCell, satnum, tep);
-		}
+        if (opt.thisPh == PhIdx::Vapour) {
+            return Create::TwoPoint::
+                Pc::GO(init, gridID, activeCell, satnum, opt, tep);
+        }
 
-		if (opt.thisPh == PhIdx::Aqua) {
-			return Create::TwoPoint::Pc::OW(init, gridID, activeCell, satnum, tep);
-		}
-	}
+        if (opt.thisPh == PhIdx::Aqua) {
+            return Create::TwoPoint::
+                Pc::OW(init, gridID, activeCell, satnum, opt, tep);
+        }
+    }
 
-	// Invalid.
-	return EPSPtr{};
+    // Invalid.
+    return EPSPtr{};
 }
 
 // - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -
@@ -1797,13 +1886,14 @@ Create::ThreePoint::Kr::G(const ::Opm::ECLInitFileData& init,
                           const std::string&            gridID,
                           const std::size_t             activeCell,
                           const int                     satnum,
+                          const EPSOpt&                 opt,
                           const RTEP&                   tep)
 {
-    const auto sgcr = sgCrit(init, gridID, activeCell, satnum, tep);
-    const auto sgu  = sgMax (init, gridID, activeCell, satnum, tep);
+    const auto sgcr = sgCrit(init, gridID, activeCell, satnum, opt, tep);
+    const auto sgu  = sgMax (init, gridID, activeCell, satnum, opt, tep);
 
     auto sdisp = CritSatVertical::CritDispSat::
-        KrG::alternateMethod(init, gridID, activeCell, satnum, tep, true);
+        KrG::alternateMethod(init, gridID, activeCell, satnum, opt, tep, true);
 
     return std::make_unique<EPS>
         (std::vector<double>{sgcr},
@@ -1842,14 +1932,15 @@ Create::ThreePoint::Kr::OG(const ::Opm::ECLInitFileData& init,
                            const std::string&            gridID,
                            const std::size_t             activeCell,
                            const int                     satnum,
+                           const EPSOpt&                 opt,
                            const RTEP&                   tep)
 {
-    const auto sogcr = sogCrit(init, gridID, activeCell, satnum, tep);
+    const auto sogcr = sogCrit(init, gridID, activeCell, satnum, opt, tep);
 
     const auto sdisp = CritSatVertical::CritDispSat::
-        KrGO::alternateMethod(init, gridID, activeCell, satnum, tep);
+        KrGO::alternateMethod(init, gridID, activeCell, satnum, opt, tep);
 
-    const auto smax = soMax(init, gridID, activeCell, satnum, tep);
+    const auto smax = soMax(init, gridID, activeCell, satnum, opt, tep);
 
     return std::make_unique<EPS>
         (std::vector<double>{sogcr},
@@ -1888,14 +1979,15 @@ Create::ThreePoint::Kr::OW(const ::Opm::ECLInitFileData& init,
                            const std::string&            gridID,
                            const std::size_t             activeCell,
                            const int                     satnum,
+                           const EPSOpt&                 opt,
                            const RTEP&                   tep)
 {
-    const auto sowcr = sowCrit(init, gridID, activeCell, satnum, tep);
+    const auto sowcr = sowCrit(init, gridID, activeCell, satnum, opt, tep);
 
     const auto sdisp = CritSatVertical::CritDispSat::
-        KrOW::alternateMethod(init, gridID, activeCell, satnum, tep);
+        KrOW::alternateMethod(init, gridID, activeCell, satnum, opt, tep);
 
-    const auto smax = soMax(init, gridID, activeCell, satnum, tep);
+    const auto smax = soMax(init, gridID, activeCell, satnum, opt, tep);
 
     return std::make_unique<EPS>
         (std::vector<double>{sowcr},
@@ -1934,13 +2026,14 @@ Create::ThreePoint::Kr::W(const ::Opm::ECLInitFileData& init,
                           const std::string&            gridID,
                           const std::size_t             activeCell,
                           const int                     satnum,
+                          const EPSOpt&                 opt,
                           const RTEP&                   tep)
 {
-    const auto swcr = swCrit(init, gridID, activeCell, satnum, tep);
-    const auto swu  = swMax (init, gridID, activeCell, satnum, tep);
+    const auto swcr = swCrit(init, gridID, activeCell, satnum, opt, tep);
+    const auto swu  = swMax (init, gridID, activeCell, satnum, opt, tep);
 
     auto sdisp = CritSatVertical::CritDispSat::
-        KrW::alternateMethod(init, gridID, activeCell, satnum, tep, true);
+        KrW::alternateMethod(init, gridID, activeCell, satnum, opt, tep, true);
 
     return std::make_unique<EPS>
         (std::vector<double>{swcr},
@@ -2026,10 +2119,12 @@ Create::ThreePoint::scalingFunction(const ::Opm::ECLInitFileData& init,
         }
 
         if (opt.thisPh == PhIdx::Aqua) {
-            return Create::ThreePoint::Kr::W(init, gridID, activeCell, satnum, tep);
+            return Create::ThreePoint::
+                Kr::W(init, gridID, activeCell, satnum, opt, tep);
         }
 
-        return Create::ThreePoint::Kr::OW(init, gridID, activeCell, satnum, tep);
+        return Create::ThreePoint::
+            Kr::OW(init, gridID, activeCell, satnum, opt, tep);
     }
 
     if (opt.subSys == SSys::OilGas) {
@@ -2041,10 +2136,12 @@ Create::ThreePoint::scalingFunction(const ::Opm::ECLInitFileData& init,
         }
 
         if (opt.thisPh == PhIdx::Vapour) {
-            return Create::ThreePoint::Kr::G(init, gridID, activeCell, satnum, tep);
+            return Create::ThreePoint::
+                Kr::G(init, gridID, activeCell, satnum, opt, tep);
         }
 
-        return Create::ThreePoint::Kr::OG(init, gridID, activeCell, satnum, tep);
+        return Create::ThreePoint::
+            Kr::OG(init, gridID, activeCell, satnum, opt, tep);
     }
 
     // Invalid.
@@ -2147,13 +2244,13 @@ namespace {
         };
     }
 
-	double pressureUnit(const Opm::ECLInitFileData& init)
-	{
+    double pressureUnit(const Opm::ECLInitFileData& init)
+    {
         const auto& ih = init.keywordData<int>(INTEHEAD_KW);
 
         return ::Opm::ECLUnits::
-            createUnitSystem(ih[ INTEHEAD_UNIT_INDEX ])->pressure();
-	}
+            createUnitSystem(ih[INTEHEAD_UNIT_INDEX])->pressure();
+    }
 
     Create::PureVertical::ScalPtr
     pureVerticalCapPressScaling(const ::Opm::ECLGraph&        G,
@@ -2161,7 +2258,6 @@ namespace {
                                 const std::vector<double>&    dflt,
                                 const std::string&            vector)
     {
-
         auto scaledMaxPc =
             gridDefaultedVector(G, init, vector, dflt,
                  [pscale = pressureUnit(init)](const double pc)
@@ -2217,12 +2313,14 @@ Create::PureVertical::Kr::G(const ::Opm::ECLGraph&        G,
 }
 
 Create::PureVertical::ScalPtr
-Create::PureVertical::Kr::G(const ::Opm::ECLInitFileData& init,
+Create::PureVertical::Kr::G(const EPSOpt&                 opt,
+                            const ::Opm::ECLInitFileData& init,
                             const std::string&            gridID,
                             const std::size_t             activeCell,
                             const double                  dflt)
 {
-	return pureVerticalRelpermScaling(init, gridID, activeCell, dflt, "KRG");
+    return pureVerticalRelpermScaling(init, gridID, activeCell,
+                                      dflt, arrayName(opt, "KRG"));
 }
 
 Create::PureVertical::ScalPtr
@@ -2234,12 +2332,14 @@ Create::PureVertical::Kr::O(const ::Opm::ECLGraph&        G,
 }
 
 Create::PureVertical::ScalPtr
-Create::PureVertical::Kr::O(const ::Opm::ECLInitFileData& init,
+Create::PureVertical::Kr::O(const EPSOpt&                 opt,
+                            const ::Opm::ECLInitFileData& init,
                             const std::string&            gridID,
                             const std::size_t             activeCell,
                             const double                  dflt)
 {
-	return pureVerticalRelpermScaling(init, gridID, activeCell, dflt, "KRO");
+    return pureVerticalRelpermScaling(init, gridID, activeCell,
+                                      dflt, arrayName(opt, "KRO"));
 }
 
 Create::PureVertical::ScalPtr
@@ -2251,12 +2351,14 @@ Create::PureVertical::Kr::W(const ::Opm::ECLGraph&        G,
 }
 
 Create::PureVertical::ScalPtr
-Create::PureVertical::Kr::W(const ::Opm::ECLInitFileData& init,
+Create::PureVertical::Kr::W(const EPSOpt&                 opt,
+                            const ::Opm::ECLInitFileData& init,
                             const std::string&            gridID,
                             const std::size_t             activeCell,
                             const double                  dflt)
 {
-	return pureVerticalRelpermScaling(init, gridID, activeCell, dflt, "KRW");
+    return pureVerticalRelpermScaling(init, gridID, activeCell,
+                                      dflt, arrayName(opt, "KRW"));
 }
 
 Create::PureVertical::ScalPtr
@@ -2268,12 +2370,14 @@ Create::PureVertical::Pc::GO(const ::Opm::ECLGraph&        G,
 }
 
 Create::PureVertical::ScalPtr
-Create::PureVertical::Pc::GO(const ::Opm::ECLInitFileData& init,
+Create::PureVertical::Pc::GO(const EPSOpt&                 opt,
+                             const ::Opm::ECLInitFileData& init,
                              const std::string&            gridID,
                              const std::size_t             activeCell,
                              const double                  dflt)
 {
-	return pureVerticalCapPressScaling(init, gridID, activeCell, dflt, "PCG");
+    return pureVerticalCapPressScaling(init, gridID, activeCell,
+                                       dflt, arrayName(opt, "PCG"));
 }
 
 Create::PureVertical::ScalPtr
@@ -2285,12 +2389,14 @@ Create::PureVertical::Pc::OW(const ::Opm::ECLGraph&        G,
 }
 
 Create::PureVertical::ScalPtr
-Create::PureVertical::Pc::OW(const ::Opm::ECLInitFileData& init,
+Create::PureVertical::Pc::OW(const EPSOpt&                 opt,
+                             const ::Opm::ECLInitFileData& init,
                              const std::string&            gridID,
                              const std::size_t             activeCell,
                              const double                  dflt)
 {
-	return pureVerticalCapPressScaling(init, gridID, activeCell, dflt, "PCW");
+    return pureVerticalCapPressScaling(init, gridID, activeCell,
+                                       dflt, arrayName(opt, "PCW"));
 }
 
 Create::PureVertical::ScalPtr
@@ -2390,10 +2496,12 @@ scalingFunction(const ::Opm::ECLInitFileData& init,
             }
 
             if (opt.thisPh == PhIdx::Vapour) {
-                return Create::PureVertical::Kr::G(init, gridID, activeCell, dflt);
+                return Create::PureVertical::
+                    Kr::G(opt, init, gridID, activeCell, dflt);
             }
 
-            return Create::PureVertical::Kr::O(init, gridID, activeCell, dflt);
+            return Create::PureVertical::
+                Kr::O(opt, init, gridID, activeCell, dflt);
         }
 
         if (opt.subSys == SSys::OilWater) {
@@ -2405,10 +2513,12 @@ scalingFunction(const ::Opm::ECLInitFileData& init,
             }
 
             if (opt.thisPh == PhIdx::Aqua) {
-                return Create::PureVertical::Kr::W(init, gridID, activeCell, dflt);
+                return Create::PureVertical::
+                    Kr::W(opt, init, gridID, activeCell, dflt);
             }
 
-            return Create::PureVertical::Kr::O(init, gridID, activeCell, dflt);
+            return Create::PureVertical::
+                Kr::O(opt, init, gridID, activeCell, dflt);
         }
     }
 
@@ -2421,11 +2531,13 @@ scalingFunction(const ::Opm::ECLInitFileData& init,
         }
 
         if (opt.thisPh == PhIdx::Vapour) {
-            return Create::PureVertical::Pc::GO(init, gridID, activeCell, dflt);
+            return Create::PureVertical::
+                Pc::GO(opt, init, gridID, activeCell, dflt);
         }
 
         if (opt.thisPh == PhIdx::Aqua) {
-            return Create::PureVertical::Pc::OW(init, gridID, activeCell, dflt);
+            return Create::PureVertical::
+                Pc::OW(opt, init, gridID, activeCell, dflt);
         }
     }
 
@@ -2507,45 +2619,47 @@ KrG::alternateMethod(const ::Opm::ECLGraph&        G,
 }
 
 double Create::CritSatVertical::CritDispSat::
-KrG::twoPointMethod(const::Opm::ECLInitFileData& init,
-                    const std::string&           gridID,
-                    const std::size_t            activeCell,
-                    const int                    satnum,
-                    const RTEP&                  tep,
-                    const bool                   activeOil)
+KrG::twoPointMethod(const ::Opm::ECLInitFileData& init,
+                    const std::string&            gridID,
+                    const std::size_t             activeCell,
+                    const int                     satnum,
+                    const EPSOpt&                 opt,
+                    const RTEP&                   tep,
+                    const bool                    activeOil)
 {
-	const auto sgcr = tep.crit.gas[satnum - 1];
-	const auto sgu  = tep.smax.gas[satnum - 1];
+    const auto sgcr = tep.crit.gas[satnum - 1];
+    const auto sgu  = tep.smax.gas[satnum - 1];
 
-	const auto sr = activeOil
-		? 1.0 - (tep.crit.oil_in_gas[satnum - 1] + tep.conn.water[satnum - 1])
-		: 1.0 - tep.crit.water[satnum - 1];
+    const auto sr = activeOil
+        ? 1.0 - (tep.crit.oil_in_gas[satnum - 1] + tep.conn.water[satnum - 1])
+        : 1.0 - tep.crit.water[satnum - 1];
 
-	return transformedCritSat((sr - sgcr) / (sgu - sgcr),
-	                          sgCrit(init, gridID, activeCell, satnum, tep),
-	                          sgMax (init, gridID, activeCell, satnum, tep));
+    return transformedCritSat((sr - sgcr) / (sgu - sgcr),
+                              sgCrit(init, gridID, activeCell, satnum, opt, tep),
+                              sgMax (init, gridID, activeCell, satnum, opt, tep));
 }
 
 double Create::CritSatVertical::CritDispSat::
-KrG::alternateMethod(const::Opm::ECLInitFileData& init,
-                     const std::string&           gridID,
-                     const std::size_t            activeCell,
-                     const int                    satnum,
-                     const RTEP&                  tep,
-                     const bool                   activeOil)
+KrG::alternateMethod(const ::Opm::ECLInitFileData& init,
+                     const std::string&            gridID,
+                     const std::size_t             activeCell,
+                     const int                     satnum,
+                     const EPSOpt&                 opt,
+                     const RTEP&                   tep,
+                     const bool                    activeOil)
 {
-	if (activeOil) {
-		// G/O or G/O/W system.
-		const auto sogcr = sogCrit(init, gridID, activeCell, satnum, tep);
-		const auto swl = ::Opm::SatFunc::
-			scaledConnateWater(init, gridID, activeCell, satnum, tep);
+    if (activeOil) {
+        // G/O or G/O/W system.
+        const auto sogcr = sogCrit(init, gridID, activeCell, satnum, opt, tep);
+        const auto swl = ::Opm::SatFunc::
+            scaledConnateWater(init, gridID, activeCell, satnum, opt, tep);
 
-		return 1.0 - (sogcr + swl);
-	}
-	else {
-		// G/W system.
-		return 1.0 - swCrit(init, gridID, activeCell, satnum, tep);
-	}
+        return 1.0 - (sogcr + swl);
+    }
+    else {
+        // G/W system.
+        return 1.0 - swCrit(init, gridID, activeCell, satnum, opt, tep);
+    }
 }
 
 std::vector<double>
@@ -2601,20 +2715,21 @@ KrGO::twoPointMethod(const ::Opm::ECLInitFileData& init,
                      const std::string&            gridID,
                      const std::size_t             activeCell,
                      const int                     satnum,
+                     const EPSOpt&                 opt,
                      const RTEP&                   tep)
 {
-	const auto sogcr = tep.crit.oil_in_gas[satnum - 1];
+    const auto sogcr = tep.crit.oil_in_gas[satnum - 1];
 
-	const auto sgco = tep.conn.gas[satnum - 1];
-	const auto swco = tep.conn.water[satnum - 1];
-	const auto sgcr = tep.crit.gas[satnum - 1];
+    const auto sgco = tep.conn.gas[satnum - 1];
+    const auto swco = tep.conn.water[satnum - 1];
+    const auto sgcr = tep.crit.gas[satnum - 1];
 
-	const auto sr   = 1.0 - (sgcr + swco);
-	const auto smax = 1.0 - (sgco + swco); // >= sr
+    const auto sr = 1.0 - (sgcr + swco);
+    const auto smax = 1.0 - (sgco + swco); // >= sr
 
-	return transformedCritSat((sr - sogcr) / (smax - sogcr),
-	                          sogCrit(init, gridID, activeCell, satnum, tep),
-	                          soMax  (init, gridID, activeCell, satnum, tep));
+    return transformedCritSat((sr - sogcr) / (smax - sogcr),
+                              sogCrit(init, gridID, activeCell, satnum, opt, tep),
+                              soMax  (init, gridID, activeCell, satnum, opt, tep));
 }
 
 double Create::CritSatVertical::CritDispSat::
@@ -2622,13 +2737,14 @@ KrGO::alternateMethod(const ::Opm::ECLInitFileData& init,
                       const std::string&            gridID,
                       const std::size_t             activeCell,
                       const int                     satnum,
+                      const EPSOpt&                 opt,
                       const RTEP&                   tep)
 {
-	const auto sgcr = sgCrit(init, gridID, activeCell, satnum, tep);
-	const auto swl  = ::Opm::SatFunc::
-		scaledConnateWater(init, gridID, activeCell, satnum, tep);
+    const auto sgcr = sgCrit(init, gridID, activeCell, satnum, opt, tep);
+    const auto swl = ::Opm::SatFunc::
+        scaledConnateWater(init, gridID, activeCell, satnum, opt, tep);
 
-	return 1.0 - (sgcr + swl);
+    return 1.0 - (sgcr + swl);
 }
 
 std::vector<double>
@@ -2684,21 +2800,21 @@ KrOW::twoPointMethod(const ::Opm::ECLInitFileData& init,
                      const std::string&            gridID,
                      const std::size_t             activeCell,
                      const int                     satnum,
+                     const EPSOpt&                 opt,
                      const RTEP&                   tep)
 {
-	const auto sowcr = tep.crit.oil_in_water[satnum-1];
+    const auto sowcr = tep.crit.oil_in_water[satnum - 1];
 
-	const auto sgco = tep.conn.gas[satnum - 1];
-	const auto swco = tep.conn.water[satnum - 1];
-	const auto swcr = tep.crit.water[satnum - 1];
+    const auto sgco = tep.conn.gas[satnum - 1];
+    const auto swco = tep.conn.water[satnum - 1];
+    const auto swcr = tep.crit.water[satnum - 1];
 
-	const auto sr   = 1.0 - (swcr + sgco);
-	const auto smax = 1.0 - (swco + sgco); // >= sr
+    const auto sr = 1.0 - (swcr + sgco);
+    const auto smax = 1.0 - (swco + sgco); // >= sr
 
-	return transformedCritSat((sr - sowcr) / (smax - sowcr),
-	                          sowCrit(init, gridID, activeCell, satnum, tep),
-	                          soMax  (init, gridID, activeCell, satnum, tep));
-
+    return transformedCritSat((sr - sowcr) / (smax - sowcr),
+                              sowCrit(init, gridID, activeCell, satnum, opt, tep),
+                              soMax  (init, gridID, activeCell, satnum, opt, tep));
 }
 
 double Create::CritSatVertical::CritDispSat::
@@ -2706,13 +2822,14 @@ KrOW::alternateMethod(const ::Opm::ECLInitFileData& init,
                       const std::string&            gridID,
                       const std::size_t             activeCell,
                       const int                     satnum,
+                      const EPSOpt&                 opt,
                       const RTEP&                   tep)
 {
-	const auto swcr = swCrit(init, gridID, activeCell, satnum, tep);
-	const auto sgl  = ::Opm::SatFunc::
-		scaledConnateGas(init, gridID, activeCell, satnum, tep);
+    const auto swcr = swCrit(init, gridID, activeCell, satnum, opt, tep);
+    const auto sgl  = ::Opm::SatFunc::
+        scaledConnateGas(init, gridID, activeCell, satnum, opt, tep);
 
-	return 1.0 - (sgl + swcr);
+    return 1.0 - (sgl + swcr);
 }
 
 std::vector<double>
@@ -2790,41 +2907,43 @@ KrW::twoPointMethod(const ::Opm::ECLInitFileData& init,
                     const std::string&            gridID,
                     const std::size_t             activeCell,
                     const int                     satnum,
+                    const EPSOpt&                 opt,
                     const RTEP&                   tep,
                     const bool                    activeOil)
 {
-	const auto swcr = tep.crit.water[satnum - 1];
-	const auto swu  = tep.smax.water[satnum - 1];
+    const auto swcr = tep.crit.water[satnum - 1];
+    const auto swu  = tep.smax.water[satnum - 1];
 
-	const auto sr = activeOil
-		? 1.0 - (tep.crit.oil_in_water[satnum - 1] + tep.conn.gas[satnum - 1])
-		: 1.0 - tep.crit.gas[satnum - 1];
+    const auto sr = activeOil
+        ? 1.0 - (tep.crit.oil_in_water[satnum - 1] + tep.conn.gas[satnum - 1])
+        : 1.0 - tep.crit.gas[satnum - 1];
 
-	return transformedCritSat((sr - swcr) / (swu - swcr),
-	                          swCrit(init, gridID, activeCell, satnum, tep),
-	                          swMax (init, gridID, activeCell, satnum, tep));
+    return transformedCritSat((sr - swcr) / (swu - swcr),
+                              swCrit(init, gridID, activeCell, satnum, opt, tep),
+                              swMax (init, gridID, activeCell, satnum, opt, tep));
 }
 
 double Create::CritSatVertical::CritDispSat::
 KrW::alternateMethod(const ::Opm::ECLInitFileData& init,
-                     const std::string& gridID,
-                     const std::size_t  activeCell,
-                     const int          satnum,
-                     const RTEP&        tep,
-                     const bool         activeOil)
+                     const std::string&            gridID,
+                     const std::size_t             activeCell,
+                     const int                     satnum,
+                     const EPSOpt&                 opt,
+                     const RTEP&                   tep,
+                     const bool                    activeOil)
 {
-	if (activeOil) {
-		// G/O or G/O/W system.
-		const auto sowcr = sowCrit(init, gridID, activeCell, satnum, tep);
-		const auto sgl = ::Opm::SatFunc::
-			scaledConnateGas(init, gridID, activeCell, satnum, tep);
+    if (activeOil) {
+        // G/O or G/O/W system.
+        const auto sowcr = sowCrit(init, gridID, activeCell, satnum, opt, tep);
+        const auto sgl = ::Opm::SatFunc::
+            scaledConnateGas(init, gridID, activeCell, satnum, opt, tep);
 
-		return 1.0 - (sowcr + sgl);
-	}
-	else {
-		// G/W system.
-		return 1.0 - sgCrit(init, gridID, activeCell, satnum, tep);
-	}
+        return 1.0 - (sowcr + sgl);
+    }
+    else {
+        // G/W system.
+        return 1.0 - sgCrit(init, gridID, activeCell, satnum, opt, tep);
+    }
 }
 
 std::vector<double>
@@ -2858,7 +2977,7 @@ transformedCritSat(const ::Opm::ECLGraph&        G,
 double Create::CritSatVertical::CritDispSat::
 transformedCritSat(const double t, const double left, const double right)
 {
-	return (1.0 - t)*left + t * right;
+    return (1.0 - t)*left + t * right;
 }
 
 namespace {
@@ -2927,57 +3046,57 @@ namespace {
                        const ::Opm::SatFunc::CreateEPS::EPSOptions&        opt,
                        const ::Opm::SatFunc::CreateEPS::RawTableEndPoints& rtep)
     {
-		namespace CDS = Create::CritSatVertical::CritDispSat;
+        namespace CDS = Create::CritSatVertical::CritDispSat;
 
-		if (opt.curve != ::Opm::SatFunc::CreateEPS::FunctionCategory::Relperm) {
-			return {};
-		}
+        if (opt.curve != ::Opm::SatFunc::CreateEPS::FunctionCategory::Relperm) {
+            return {};
+        }
 
-		const auto& ih = init.keywordData<int>(INTEHEAD_KW);
-		const auto  activeOil =
-			(ih[INTEHEAD_PHASE_INDEX] & (1u << 0u)) != 0;
+        const auto& ih = init.keywordData<int>(INTEHEAD_KW);
+        const auto  activeOil =
+            (ih[INTEHEAD_PHASE_INDEX] & (1u << 0u)) != 0;
 
-		if (opt.subSys == ::Opm::SatFunc::CreateEPS::SubSystem::OilGas) {
-			if (opt.thisPh == ::Opm::ECLPhaseIndex::Aqua) {
-				throw std::invalid_argument{
-					"Cannot request Critical Scaled Saturation "
-					"for water in Gas/Oil system"
-				};
-			}
+        if (opt.subSys == ::Opm::SatFunc::CreateEPS::SubSystem::OilGas) {
+            if (opt.thisPh == ::Opm::ECLPhaseIndex::Aqua) {
+                throw std::invalid_argument{
+                    "Cannot request Critical Scaled Saturation "
+                    "for water in Gas/Oil system"
+                };
+            }
 
-			if (opt.thisPh == ::Opm::ECLPhaseIndex::Liquid) {
-				return !opt.use3PtScaling
-					? CDS::KrGO::twoPointMethod(init, gridID, activeCell, satnum, rtep)
-					: CDS::KrGO::alternateMethod(init, gridID, activeCell, satnum, rtep);
-			}
+            if (opt.thisPh == ::Opm::ECLPhaseIndex::Liquid) {
+                return !opt.use3PtScaling
+                    ? CDS::KrGO::twoPointMethod (init, gridID, activeCell, satnum, opt, rtep)
+                    : CDS::KrGO::alternateMethod(init, gridID, activeCell, satnum, opt, rtep);
+            }
 
-			return !opt.use3PtScaling
-				? CDS::KrG::twoPointMethod(init, gridID, activeCell, satnum, rtep, activeOil)
-				: CDS::KrG::alternateMethod(init, gridID, activeCell, satnum, rtep, activeOil);
-		}
+            return !opt.use3PtScaling
+                ? CDS::KrG::twoPointMethod (init, gridID, activeCell, satnum, opt, rtep, activeOil)
+                : CDS::KrG::alternateMethod(init, gridID, activeCell, satnum, opt, rtep, activeOil);
+        }
 
-		if (opt.subSys == ::Opm::SatFunc::CreateEPS::SubSystem::OilWater) {
-			if (opt.thisPh == ::Opm::ECLPhaseIndex::Vapour) {
-				throw std::invalid_argument{
-					"Cannot request Critical Scaled Saturation "
-					"for gas in Oil/Water system"
-				};
-			}
+        if (opt.subSys == ::Opm::SatFunc::CreateEPS::SubSystem::OilWater) {
+            if (opt.thisPh == ::Opm::ECLPhaseIndex::Vapour) {
+                throw std::invalid_argument{
+                    "Cannot request Critical Scaled Saturation "
+                    "for gas in Oil/Water system"
+                };
+            }
 
-			if (opt.thisPh == ::Opm::ECLPhaseIndex::Liquid) {
-				return !opt.use3PtScaling
-					? CDS::KrOW::twoPointMethod(init, gridID, activeCell, satnum, rtep)
-					: CDS::KrOW::alternateMethod(init, gridID, activeCell, satnum, rtep);
-			}
+            if (opt.thisPh == ::Opm::ECLPhaseIndex::Liquid) {
+                return !opt.use3PtScaling
+                    ? CDS::KrOW::twoPointMethod (init, gridID, activeCell, satnum, opt, rtep)
+                    : CDS::KrOW::alternateMethod(init, gridID, activeCell, satnum, opt, rtep);
+            }
 
-			return !opt.use3PtScaling
-				? CDS::KrW::twoPointMethod(init, gridID, activeCell, satnum, rtep, activeOil)
-				: CDS::KrW::alternateMethod(init, gridID, activeCell, satnum, rtep, activeOil);
-		}
+            return !opt.use3PtScaling
+                ? CDS::KrW::twoPointMethod (init, gridID, activeCell, satnum, opt, rtep, activeOil)
+                : CDS::KrW::alternateMethod(init, gridID, activeCell, satnum, opt, rtep, activeOil);
+        }
 
-		// Invalid
-		return {};
-	}
+        // Invalid
+        return {};
+    }
 
     std::vector<double>
     maximumSat(const ::Opm::ECLGraph&                              G,
@@ -3003,20 +3122,20 @@ namespace {
                       const ::Opm::SatFunc::CreateEPS::EPSOptions&        opt,
                       const ::Opm::SatFunc::CreateEPS::RawTableEndPoints& tep)
     {
-    	switch (opt.thisPh) {
-    	case ::Opm::ECLPhaseIndex::Aqua:
-			return swMax(init, gridID, activeCell, satnum, tep);
+        switch (opt.thisPh) {
+        case ::Opm::ECLPhaseIndex::Aqua:
+            return swMax(init, gridID, activeCell, satnum, opt, tep);
 
-		case ::Opm::ECLPhaseIndex::Liquid:
-			return soMax(init, gridID, activeCell, satnum, tep);
+        case ::Opm::ECLPhaseIndex::Liquid:
+            return soMax(init, gridID, activeCell, satnum, opt, tep);
 
-		case ::Opm::ECLPhaseIndex::Vapour:
-			return sgMax(init, gridID, activeCell, satnum, tep);
-    	}
-    
-    	throw std::invalid_argument {
-    		"Unsupported Phase Index"
-    	};
+        case ::Opm::ECLPhaseIndex::Vapour:
+            return sgMax(init, gridID, activeCell, satnum, opt, tep);
+        }
+
+        throw std::invalid_argument{
+            "Unsupported Phase Index"
+        };
     }
 }
 
@@ -3056,7 +3175,8 @@ Create::CritSatVertical::Kr::G(const ::Opm::ECLGraph&        G,
 }
 
 Create::CritSatVertical::ScalPtr
-Create::CritSatVertical::Kr::G(const ::Opm::ECLInitFileData& init,
+Create::CritSatVertical::Kr::G(const EPSOpt&                 opt,
+                               const ::Opm::ECLInitFileData& init,
                                const std::string&            gridID,
                                const std::size_t             activeCell,
                                const double                  sdisp,
@@ -3064,11 +3184,15 @@ Create::CritSatVertical::Kr::G(const ::Opm::ECLInitFileData& init,
                                const FuncVal&                fval)
 {
     const auto fdisp =
-        arrayValue(init, gridID, activeCell, "KRGR", fval.disp.val,
+        arrayValue(init, gridID, activeCell,
+                   arrayName(opt, "KRGR"),
+                   fval.disp.val,
                    [](const double kr) { return kr; });
 
     const auto fmax =
-        arrayValue(init, gridID, activeCell, "KRG", fval.max.val,
+        arrayValue(init, gridID, activeCell,
+                   arrayName(opt, "KRG"),
+                   fval.max.val,
                    [](const double kr) { return kr; });
 
     return std::make_unique<::Opm::SatFunc::CritSatVerticalScaling>
@@ -3112,24 +3236,29 @@ Create::CritSatVertical::Kr::GO(const ::Opm::ECLGraph&        G,
 }
 
 Create::CritSatVertical::ScalPtr
-Create::CritSatVertical::Kr::GO(const ::Opm::ECLInitFileData& init,
+Create::CritSatVertical::Kr::GO(const EPSOpt&                 opt,
+                                const ::Opm::ECLInitFileData& init,
                                 const std::string&            gridID,
                                 const std::size_t             activeCell,
                                 const double                  sdisp,
                                 const double                  smax,
                                 const FuncVal&                fval)
 {
-	const auto fdisp =
-		arrayValue(init, gridID, activeCell, "KRORG", fval.disp.val,
-			[](const double kr) { return kr; });
+    const auto fdisp =
+        arrayValue(init, gridID, activeCell,
+                   arrayName(opt, "KRORG"),
+                   fval.disp.val,
+                   [](const double kr) { return kr; });
 
-	const auto fmax =
-		arrayValue(init, gridID, activeCell, "KRO", fval.max.val,
-			[](const double kr) { return kr; });
+    const auto fmax =
+        arrayValue(init, gridID, activeCell,
+                   arrayName(opt, "KRO"),
+                   fval.max.val,
+                   [](const double kr) { return kr; });
 
-	return std::make_unique<::Opm::SatFunc::CritSatVerticalScaling>
-		(std::vector<double>{sdisp}, std::vector<double>{fdisp},
-		 std::vector<double>{smax}, std::vector<double>{fmax});
+    return std::make_unique<::Opm::SatFunc::CritSatVerticalScaling>
+        (std::vector<double>{sdisp}, std::vector<double>{fdisp},
+         std::vector<double>{smax} , std::vector<double>{fmax});
 }
 
 Create::CritSatVertical::ScalPtr
@@ -3168,24 +3297,29 @@ Create::CritSatVertical::Kr::OW(const ::Opm::ECLGraph&        G,
 }
 
 Create::CritSatVertical::ScalPtr
-Create::CritSatVertical::Kr::OW(const ::Opm::ECLInitFileData& init,
+Create::CritSatVertical::Kr::OW(const EPSOpt&                 opt,
+                                const ::Opm::ECLInitFileData& init,
                                 const std::string&            gridID,
                                 const std::size_t             activeCell,
                                 const double                  sdisp,
                                 const double                  smax,
                                 const FuncVal&                fval)
 {
-	const auto fdisp =
-		arrayValue(init, gridID, activeCell, "KRORW", fval.disp.val,
-			[](const double kr) { return kr; });
+    const auto fdisp =
+        arrayValue(init, gridID, activeCell,
+                   arrayName(opt, "KRORW"),
+                   fval.disp.val,
+                   [](const double kr) { return kr; });
 
-	const auto fmax =
-		arrayValue(init, gridID, activeCell, "KRO", fval.max.val,
-			[](const double kr) { return kr; });
+    const auto fmax =
+        arrayValue(init, gridID, activeCell,
+                   arrayName(opt, "KRO"),
+                   fval.max.val,
+                   [](const double kr) { return kr; });
 
-	return std::make_unique<::Opm::SatFunc::CritSatVerticalScaling>
-		(std::vector<double>{sdisp}, std::vector<double>{fdisp},
-		 std::vector<double>{smax}, std::vector<double>{fmax});
+    return std::make_unique<::Opm::SatFunc::CritSatVerticalScaling>
+        (std::vector<double>{sdisp}, std::vector<double>{fdisp},
+         std::vector<double>{smax} , std::vector<double>{fmax});
 }
 
 Create::CritSatVertical::ScalPtr
@@ -3224,7 +3358,8 @@ Create::CritSatVertical::Kr::W(const ::Opm::ECLGraph&        G,
 }
 
 Create::CritSatVertical::ScalPtr
-Create::CritSatVertical::Kr::W(const ::Opm::ECLInitFileData& init,
+Create::CritSatVertical::Kr::W(const EPSOpt&                 opt,
+                               const ::Opm::ECLInitFileData& init,
                                const std::string&            gridID,
                                const std::size_t             activeCell,
                                const double                  sdisp,
@@ -3232,16 +3367,20 @@ Create::CritSatVertical::Kr::W(const ::Opm::ECLInitFileData& init,
                                const FuncVal&                fval)
 {
     const auto fdisp =
-        arrayValue(init, gridID, activeCell, "KRWR", fval.disp.val,
+        arrayValue(init, gridID, activeCell,
+                   arrayName(opt, "KRWR"),
+                   fval.disp.val,
                    [](const double kr) { return kr; });
 
     const auto fmax =
-        arrayValue(init, gridID, activeCell, "KRW", fval.max.val,
+        arrayValue(init, gridID, activeCell,
+                   arrayName(opt, "KRW"),
+                   fval.max.val,
                    [](const double kr) { return kr; });
 
     return std::make_unique<::Opm::SatFunc::CritSatVerticalScaling>
         (std::vector<double>{sdisp}, std::vector<double>{fdisp},
-         std::vector<double>{smax}, std::vector<double>{fmax});
+         std::vector<double>{smax} , std::vector<double>{fmax});
 }
 
 Create::CritSatVertical::ScalPtr
@@ -3322,11 +3461,11 @@ scalingFunction(const ::Opm::ECLInitFileData& init,
 
         if (opt.thisPh == PhIdx::Aqua) {
             return Create::CritSatVertical::
-                Kr::W(init, gridID, activeCell, scr, smax, fvals);
+                Kr::W(opt, init, gridID, activeCell, scr, smax, fvals);
         }
 
         return Create::CritSatVertical::
-            Kr::OW(init, gridID, activeCell, scr, smax, fvals);
+            Kr::OW(opt, init, gridID, activeCell, scr, smax, fvals);
     }
 
     if (opt.subSys == SSys::OilGas) {
@@ -3339,11 +3478,11 @@ scalingFunction(const ::Opm::ECLInitFileData& init,
 
         if (opt.thisPh == PhIdx::Vapour) {
             return Create::CritSatVertical::
-                Kr::G(init, gridID, activeCell, scr, smax, fvals);
+                Kr::G(opt, init, gridID, activeCell, scr, smax, fvals);
         }
 
         return Create::CritSatVertical::
-            Kr::GO(init, gridID, activeCell, scr, smax, fvals);
+            Kr::GO(opt, init, gridID, activeCell, scr, smax, fvals);
     }
 
     // Invalid.
@@ -3605,14 +3744,11 @@ fromECLOutput(const ECLGraph&          G,
               const EPSOptions&        opt,
               const RawTableEndPoints& tep)
 {
-    if ((opt.curve == FunctionCategory::CapPress) ||
-        (! opt.use3PtScaling))
-    {
+    if ((opt.curve == FunctionCategory::CapPress) || !opt.use3PtScaling) {
         return Create::TwoPoint::scalingFunction(G, init, opt, tep);
     }
 
-    if ((opt.curve == FunctionCategory::Relperm) && opt.use3PtScaling)
-    {
+    if ((opt.curve == FunctionCategory::Relperm) && opt.use3PtScaling) {
         return Create::ThreePoint::scalingFunction(G, init, opt, tep);
     }
 
@@ -3629,21 +3765,18 @@ fromECLOutput(const ECLInitFileData&   init,
               const EPSOptions&        opt,
               const RawTableEndPoints& tep)
 {
-	if ((opt.curve == FunctionCategory::CapPress) ||
-		(!opt.use3PtScaling))
-	{
-		return Create::TwoPoint::
-			scalingFunction(init, gridID, activeCell, satnum, opt, tep);
-	}
+    if ((opt.curve == FunctionCategory::CapPress) || !opt.use3PtScaling) {
+        return Create::TwoPoint::
+            scalingFunction(init, gridID, activeCell, satnum, opt, tep);
+    }
 
-	if ((opt.curve == FunctionCategory::Relperm) && opt.use3PtScaling)
-	{
-		return Create::ThreePoint::
-			scalingFunction(init, gridID, activeCell, satnum, opt, tep);
-	}
+    if ((opt.curve == FunctionCategory::Relperm) && opt.use3PtScaling) {
+        return Create::ThreePoint::
+            scalingFunction(init, gridID, activeCell, satnum, opt, tep);
+    }
 
-	// Invalid
-	return {};
+    // Invalid
+    return {};
 }
 
 // ---------------------------------------------------------------------
@@ -3654,14 +3787,11 @@ Opm::SatFunc::CreateEPS::Horizontal::
 unscaledEndPoints(const EPSOptions&        opt,
                   const RawTableEndPoints& ep)
 {
-    if ((opt.curve == FunctionCategory::CapPress) ||
-        (! opt.use3PtScaling))
-    {
+    if ((opt.curve == FunctionCategory::CapPress) || !opt.use3PtScaling) {
         return Create::TwoPoint::unscaledEndPoints(ep, opt);
     }
 
-    if ((opt.curve == FunctionCategory::Relperm) && opt.use3PtScaling)
-    {
+    if ((opt.curve == FunctionCategory::Relperm) && opt.use3PtScaling) {
         return Create::ThreePoint::unscaledEndPoints(ep, opt);
     }
 
@@ -3682,14 +3812,12 @@ fromECLOutput(const ECLGraph&          G,
 {
     const auto haveScaleCRS = haveScaledRelPermAtCritSat(G, init, opt);
 
-    if ((opt.curve == FunctionCategory::CapPress) || (! haveScaleCRS))
-    {
+    if ((opt.curve == FunctionCategory::CapPress) || !haveScaleCRS) {
         return Create::PureVertical::
             scalingFunction(G, init, opt, fvals);
     }
 
-    if ((opt.curve == FunctionCategory::Relperm) && haveScaleCRS)
-    {
+    if ((opt.curve == FunctionCategory::Relperm) && haveScaleCRS) {
         return Create::CritSatVertical::
             scalingFunction(G, init, opt, tep, fvals);
     }
@@ -3710,7 +3838,7 @@ fromECLOutput(const ECLInitFileData&                          init,
 {
     const auto haveScaleCRS = haveScaledRelPermAtCritSat(init, gridID, opt);
 
-    if ((opt.curve == FunctionCategory::CapPress) || (!haveScaleCRS)) {
+    if ((opt.curve == FunctionCategory::CapPress) || !haveScaleCRS) {
         return Create::PureVertical::
             scalingFunction(init, gridID, activeCell, opt, fvals);
     }
@@ -3838,9 +3966,11 @@ double Opm::SatFunc::scaledConnateGas(const ECLInitFileData&              init,
                                       const std::string&                  gridID,
                                       const std::size_t                   activeCell,
                                       const int                           satnum,
+                                      const CreateEPS::EPSOptions&        opt,
                                       const CreateEPS::RawTableEndPoints& tep)
 {
-    return arrayValue(init, gridID, activeCell, "SGL",
+    return arrayValue(init, gridID, activeCell,
+                      arrayName(opt, "SGL"),
                       tep.conn.gas[satnum - 1],
                       [](const double s) { return s; });
 }
@@ -3858,9 +3988,11 @@ double Opm::SatFunc::scaledConnateWater(const ECLInitFileData&              init
                                         const std::string&                  gridID,
                                         const std::size_t                   activeCell,
                                         const int                           satnum,
+                                        const CreateEPS::EPSOptions&        opt,
                                         const CreateEPS::RawTableEndPoints& tep)
 {
-    return arrayValue(init, gridID, activeCell, "SWL",
+    return arrayValue(init, gridID, activeCell,
+                      arrayName(opt, "SWL"),
                       tep.conn.water[satnum - 1],
                       [](const double s) { return s; });
 }

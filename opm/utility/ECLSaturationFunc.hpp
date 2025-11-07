@@ -96,6 +96,15 @@ namespace Opm {
                 OilWater,
             };
 
+            /// Which process does this request reference.
+            enum class CurveSet {
+                /// Primary drainage curve (SATNUM &c).
+                Drainage,
+
+                /// Imbibition curve (IMBNUM, I* vectors).
+                Imbibition,
+            };
+
             /// Particular saturation function of this request.
             Function curve;
 
@@ -105,6 +114,11 @@ namespace Opm {
             /// Phase/component for which to form the effective saturation
             /// function curve.
             ECLPhaseIndex thisPh;
+
+            /// Set of curves used in this request.
+            ///
+            /// By default we compute points on the primary drainage curves.
+            CurveSet curveSet{ CurveSet::Drainage };
         };
 
         struct SatFuncScaling {
@@ -122,11 +136,6 @@ namespace Opm {
         };
 
         /// Constructor
-        ///
-        /// \param[in] G Connected topology of current model's active cells.
-        ///    Needed to linearise region mapping (e.g., SATNUM) that is
-        ///    distributed on local grids to all of the model's active cells
-        ///    (\code member function G.rawLinearisedCellData() \endcode).
         ///
         /// \param[in] init Container of tabulated saturation functions and
         ///    saturation table end points, if applicable, for all active
@@ -193,6 +202,10 @@ namespace Opm {
         ///    distributed on local grids to all of the model's active cells
         ///    (\code member function G.rawLinearisedCellData() \endcode).
         ///
+        /// \param[in] init Container of tabulated saturation functions and
+        ///    saturation table end points, if applicable, for all active
+        ///    cells in the model \p G.
+        ///
         /// \param[in] rstrt ECLIPSE restart vectors.  Result set view
         ///    assumed to be positioned at a particular report step of
         ///    interest.
@@ -213,6 +226,13 @@ namespace Opm {
         /// saturation functions in a single cell.
         ///
         /// \param[in] func Sequence of saturation function descriptions.
+        ///
+        /// \param[in] init Container of tabulated saturation functions and
+        ///    saturation table end points, if applicable, for all active
+        ///    cells in the model \p G.
+        ///
+        /// \param[in] gridID Grid identifier. Empty string for the global
+        ///    grid, LGR name for a local grid.
         ///
         /// \param[in] activeCell Index of active cell from which to derive
         ///    the effective saturation function.  Use member function \code
@@ -237,9 +257,10 @@ namespace Opm {
         ///    relative permeability in the oil-gas system, then the
         ///    corresponding graph in the result is empty.
         ///
-        /// Example: Retrieve relative permeability curves for oil in active
-        ///    cell 2718 in both the oil-gas and oil-water sub-systems
-        ///    including effects of vertical scaling only.
+        /// Example: Retrieve primary drainage relative permeability curves
+        ///    for oil in active cell 2718 of local grid "LGR1" in both the
+        ///    oil-gas and oil-water sub-systems including effects of
+        ///    vertical scaling only.
         ///
         ///    \code
         ///       using RC = ECLSaturationFunc::RawCurve;
@@ -250,29 +271,32 @@ namespace Opm {
         ///       func.push_back(RC{
         ///           RC::Function::RelPerm,
         ///           RC::SubSystem::OilGas,
-        ///           ECLPhaseIndex::Liquid
+        ///           ECLPhaseIndex::Liquid,
+        ///           RC::CurveSet::Drainage,
         ///       });
         ///
         ///       // Request krow (oil rel-perm in oil-water system)
         ///       func.push_back(RC{
         ///           RC::Function::RelPerm,
         ///           RC::SubSystem::OilWater,
-        ///           ECLPhaseIndex::Liquid
+        ///           ECLPhaseIndex::Liquid,
+        ///           RC::CurveSet::Drainage,
         ///       });
         ///
         ///       auto scaling    = SatFuncScaling{};
         ///       scaling.enable  = static_cast<unsigned char>(0);
         ///       scaling.enable |= SatFuncScaling::Type::Vertical;
         ///
-        ///       const auto graph =
-        ///           sfunc.getSatFuncCurve(func, 2718, scaling);
+        ///       const auto gridID = std::string{"LGR1"};
+        ///
+        ///       const auto graph = sfunc
+        ///          .getSatFuncCurve(func, init, gridID, 2718, scaling);
         ///    \endcode
         std::vector<FlowDiagnostics::Graph>
         getSatFuncCurve(const std::vector<RawCurve>& func,
                         const ECLInitFileData&       init,
                         const std::string&           gridID,
                         const int                    activeCell,
-                        const int                    satnum,
                         const SatFuncScaling&        scaling) const;
 
     private:
